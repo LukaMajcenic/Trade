@@ -1,0 +1,54 @@
+<div class="d-flex customFlex">
+	<h4>PREGLEDAJ ARTIKLE</h4>
+
+	<div class="btn-group btn-group-custom" role="group" aria-label="Basic radio toggle button group">
+	  	<input ng-click="ShowCards()" type="radio" class="btn-check" name="btnradio" id="btnradioCards" autocomplete="off" checked>
+	  	<label class="btn btn-outline-primary radiusNone" for="btnradioCards"><i class="fas fa-th"></i></label>
+
+	    <input ng-click="ShowTable()" type="radio" class="btn-check" name="btnradio" id="btnradioTable" autocomplete="off">
+		<label class="btn btn-outline-primary radiusNone" for="btnradioTable"><i class="fas fa-th-list"></i></label>
+	</div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3" id="pregledArtiklaCards" style="justify-content: center;">
+	<div ng-repeat="Artikl in Artikli" class="card m-3">
+		<div class="card-header">
+			{{Artikl.Kategorija.Naziv}}
+		</div>
+		<img src="{{Artikl.Slika}}" class="card-img-top" alt="...">
+		<div class="card-body">
+			<h5 class="card-title">{{Artikl.Naziv}}</h5>
+			<p class="card-text">{{Artikl.Opis}}</p>
+		</div>
+		<div class="card-footer">
+		    {{Artikl.JedinicnaCijena}} kn <span class="badge">{{Artikl.JedinicaMjere}}</span>
+		</div>
+	</div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 displayNone" id="pregledArtiklaTable" style="justify-content: center;">
+	<table class="table table-hover">
+  		<thead>
+			<tr>
+				<th scope="col"></th>
+				<th scope="col">Šifra artikla</th>
+				<th scope="col">Naziv</th>
+				<th scope="col">Opis</th>
+				<th scope="col">Jedinična mjera</th>
+				<th scope="col">Jedinična cijena</th>
+				<th scope="col">Kategorija</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="Artikl in Artikli">
+				<td scope="col"><img src="{{Artikl.Slika}}" class="tdImage"></td>
+				<td scope="col">{{Artikl.SifraArtikla}}</td>
+				<td scope="col">{{Artikl.Naziv}}}</td>
+				<td scope="col">{{Artikl.Opis}}</td>
+				<td scope="col">{{Artikl.JedinicaMjere}}</td>
+				<td scope="col">{{Artikl.JedinicnaCijena}}</td>
+				<td scope="col">{{Artikl.Kategorija.Naziv}}</td>
+			</tr>
+		</tbody>
+	</table>
+</div>

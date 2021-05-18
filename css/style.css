@@ -1,0 +1,151 @@
+body
+{
+	background-color: var(--background);
+}
+
+.radiusNone
+{
+	border-radius: 0px;
+}
+
+#themeBtn
+{
+	background-color: transparent;
+    border: none;
+    font-size: 20px;
+    color: white;
+}
+
+.card
+{
+	width: 18rem;
+	padding: 0px;
+	background-color: var(--backgroundDarker1);
+	color: var(--foreground);
+	border-radius: 0px;
+}
+
+.card-img-top
+{
+	object-fit: cover;
+	height: 200px;
+}
+
+.card-footer
+{
+	border-top: 4px solid var(--customRed);
+}
+
+.badge
+{
+	background: rgb(153,0,0);
+	background: linear-gradient(90deg, rgba(153,0,0,1) 0%, rgba(153,0,0,1) 75%, rgba(102,0,102,1) 100%);
+}
+
+.displayNone
+{
+	display: none;
+}
+
+.tdImage
+{
+	max-height: 50px;
+}
+
+.btn-check:active+.btn-outline-primary, .btn-check:checked+.btn-outline-primary, .btn-outline-primary.active, .btn-outline-primary.dropdown-toggle.show, .btn-outline-primary:active 
+{
+    background-color: var(--customRed);
+    border-color: var(--customRed);
+}
+
+.btn-outline-primary 
+{
+    color: var(--customRed);;
+    border-color: var(--customRed);
+}
+
+.btn-outline-primary:hover
+{
+    background-color: var(--customRed);
+    border-color: var(--customRed);
+}
+
+h4
+{
+    border-bottom: 5px solid var(--customRed);
+    color: silver;
+    font-weight: bold;
+    font-size: xx-large;
+}
+
+.customFlex
+{
+	justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.btn-group-custom
+{
+	position: absolute;
+	right: 10px;
+}
+
+.form-control, .form-select
+{
+	border-radius: 0px;
+}
+
+.customButton
+{
+	border: none;
+	background-color: var(--customRed);
+	color: white;
+	padding: 10px;
+}
+
+.customButton:hover
+{
+	filter: brightness(110%);
+}
+
+.customButton i
+{
+	color: rgba(255,255,255,0.3);
+	margin-left: 5px;
+}
+
+.customForm input,select
+{
+	background-color: var(--backgroundDarker1) !important;
+	border: 0px !important;
+	color: var(--foreground) !important;
+}
+
+.customForm input:focus,select:focus
+{
+	border-bottom: 3px solid var(--customRed) !important;
+	box-shadow: none !important;
+}
+
+.customForm label
+{
+	background-color: transparent;
+	color: var(--foreground);
+}
+
+/* Change the white to any color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active
+{
+ -webkit-box-shadow: 0 0 0 30px var(--backgroundDarker1) inset !important;
+}
+
+/*Change text in autofill textbox*/
+input:-webkit-autofill
+{
+ -webkit-text-fill-color: var(--foreground) !important;
+}
+

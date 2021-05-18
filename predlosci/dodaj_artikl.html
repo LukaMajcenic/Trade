@@ -1,0 +1,90 @@
+<div class="d-flex customFlex">
+	<h4>DODAJ ARTIKL</h4>
+</div>
+
+<form ng-submit="Submit()" class="px-5 customForm">
+	<div class="form-floating mb-3">
+		<input type="text" class="form-control customInput" id="floatingNaziv" placeholder=" " ng-model="NoviArtikl.Naziv">
+		<label for="floatingNaziv">Naziv</label>
+	</div>
+
+	<div class="form-floating mb-3">
+		<input type="text" class="form-control customInput" id="floatingOpis" placeholder=" " ng-model="NoviArtikl.Opis">
+		<label for="floatingOpis">Opis</label>
+	</div>
+
+	<div class="d-flex">
+		<div class="form-floating mb-3" style="flex: 1;">
+		<select class="form-select customInput" id="floatingJedinicaMjere" aria-label=" " ng-model="NoviArtikl.JedinicaMjere">
+			<option selected>Komad</option>
+			<option value="1">Kg</option>
+		</select>
+		<label for="floatingJedinicaMjere">Jedinica mjere</label>
+		</div>
+		<button class="mb-3 customButton">Nova jedinica mjere</button>
+	</div>		
+
+	<div class="d-flex">
+		<div class="form-floating mb-3" style="flex: 1">
+			<input type="number" class="form-control customInput" id="floatingJedinicnaCijena" placeholder=" ">
+			<label for="floatingJedinicnaCijena">Jedinična cijena</label>
+		</div>
+		<div class="form-floating mb-3" style="width: 20%; margin-left: 2px;">
+			<select class="form-select customInput" id="floatingValuta" aria-label=" ">
+				<option selected>x</option>
+				<option value="1">y</option>
+			</select>
+			<label for="floatingValuta">Valuta</label>
+		</div>
+	</div>
+
+	<div class="form-floating mb-3">
+		<select class="form-select customInput" id="floatingKategorija" aria-label=" ">
+			<option selected>x</option>
+			<option value="1">y</option>
+		</select>
+		<label for="floatingKategorija">Kategorija</label>
+	</div>
+
+	<button type="submit" class="customButton">DODAJ ARTIKL<i class="fas fa-plus-circle"></i></button>
+	
+</form>
+
+<form class="row g-3 needs-validation" novalidate>
+<div class="col-md-4">
+    <div class="col-md-4 position-relative">
+    <label for="validationTooltip01" class="form-label">First name</label>
+    <input type="text" class="form-control" id="validationTooltip01" value="Mark" required>
+    <div class="valid-tooltip">
+      Looks good!
+    </div>
+      <div class="invalid-tooltip">
+        Please choose a unique and valid username.
+      </div>
+  </div>
+  </div>
+<button class="btn btn-primary" type="submit">Submit form</button>
+
+</form>
+
+<script type="text/javascript">
+	(function () {
+  'use strict'
+
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  var forms = document.querySelectorAll('.needs-validation')
+
+  // Loop over them and prevent submission
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+
+        form.classList.add('was-validated')
+      }, false)
+    })
+})()
+</script>

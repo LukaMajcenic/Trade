@@ -1,0 +1,92 @@
+nav
+{
+	background: rgb(153,0,0);
+	background: linear-gradient(90deg, rgba(153,0,0,1) 0%, rgba(153,0,0,1) 75%, limegreen 100%);
+}
+
+a:hover
+{
+	cursor: pointer;
+}
+
+.dropdown-divider
+{
+	color: gray;
+	opacity: 0.3
+}
+
+.nav-item
+{
+	margin-right: 2px;
+    background-color: rgba(255,255,255,0.1);
+}
+
+.nav-item:hover
+{
+    background-color: rgba(255,255,255,0.2);
+}
+
+.dropdown-menu
+{
+	border: 0px; 
+	border-radius: 0%;
+	background-color: var(--backgroundDarker1);
+}
+
+.dropdown-item
+{
+	display: flex;
+	align-items: center;
+	color: var(--foreground);
+}
+
+.dropdown-item:hover
+{
+	background-color: #990000;
+	color: white;
+}
+
+.dropdown-item i
+{
+	margin-left: auto;
+	color: gray;
+	opacity: 0.3
+}
+
+.dropdown-item:hover i
+{
+	color: white;
+}
+
+.container {
+	position:absolute;
+    left:50%;
+    margin-left:-66px;
+    padding: 8px 8px 32px 8px;
+    background: limegreen;
+    width: 132px;
+    padding-bottom: 25px;
+    padding-top: 0px;
+    color: var(--background);
+    -webkit-box-shadow: inset 0px 10px 20px -15px #000000; 
+	box-shadow: inset 0px 10px 20px -15px #000000;
+}
+
+.container:hover
+{
+	padding-top: 5px;
+	cursor: pointer;
+}
+
+.container:after {
+    background: linear-gradient(-45deg, var(--background) 16px, transparent 0), linear-gradient(45deg, var(--background) 16px, transparent 0);
+    background-repeat: repeat-x;
+    background-size: 12px 32px;
+    content: " ";
+    display: block;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    height: 32px;
+}
