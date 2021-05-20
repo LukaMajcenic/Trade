@@ -115,14 +115,19 @@ h4
 	margin-left: 5px;
 }
 
-.customForm input,select
+.customForm input,select,textarea
 {
 	background-color: var(--backgroundDarker1) !important;
-	border: 0px !important;
+	border: none !important;
 	color: var(--foreground) !important;
 }
 
-.customForm input:focus,select:focus
+.customForm textarea
+{
+	height: auto !important;
+}
+
+.customForm input:focus,select:focus,textarea:focus
 {
 	border-bottom: 3px solid var(--customRed) !important;
 	box-shadow: none !important;
@@ -149,3 +154,25 @@ input:-webkit-autofill
  -webkit-text-fill-color: var(--foreground) !important;
 }
 
+.validationLabel
+{
+	color: red !important;
+	opacity: 0.6;
+	font-size: 1rem;
+}
+
+.table-hover>tbody>tr:hover 
+{
+    --bs-table-accent-bg: var(--backgroundDarker1);
+    color: var(--bs-table-hover-color);
+}
+
+.table-hover>tbody>tr.noHoverEffect:hover 
+{
+    --bs-table-accent-bg: var(--background);
+}
+
+thead
+{
+	border-bottom: 4px solid var(--customRed);
+}

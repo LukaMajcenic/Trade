@@ -1,0 +1,44 @@
+<div class="d-flex customFlex">
+	<h4>UREDI ARTIKLE</h4>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3" style="justify-content: center;">
+	<table class="table table-hover">
+  		<thead>
+			<tr>
+				<th scope="col"></th>
+				<th scope="col">Šifra artikla</th>
+				<th scope="col">Naziv</th>
+				<th scope="col">Opis</th>
+				<th scope="col">Jedinična mjera</th>
+				<th scope="col">Jedinična cijena</th>
+				<th scope="col">Kategorija</th>
+				<th scope="col">Uredi</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat-start="Artikl in Artikli" id="{{Artikl.SifraArtikla}}">
+				<td scope="col"><img src="{{Artikl.Slika}}" class="tdImage"></td>
+				<td scope="col">{{Artikl.SifraArtikla}}</td>
+				<td scope="col">{{Artikl.Naziv}}</td>
+				<td scope="col">{{Artikl.Opis}}</td>
+				<td scope="col">{{Artikl.JedinicaMjere}}</td>
+				<td scope="col">{{Artikl.JedinicnaCijena}}</td>
+				<td scope="col">{{Artikl.Kategorija.Naziv}}</td>
+				<td scope="col">
+					<button class="customButton" ng-click="Open(Artikl)" data-bs-toggle="collapse" data-bs-target="#collapse{{Artikl.SifraArtikla}}" aria-expanded="false" aria-controls="collapse{{Artikl.SifraArtikla}}">
+					    Uredi<i class="fas fa-cog"></i>
+					</button>
+				</td>
+			</tr>
+			<tr ng-repeat-end class="noHoverEffect">
+				<td scope="col" colspan="8">
+					<div class="collapse" id="collapse{{Artikl.SifraArtikla}}">
+						<artikl-forma artikl-parametar="Artikl" kategorije-parametar="Kategorije" submit-parametar="Submit()"></artikl-forma>
+					</div>
+				<td scope="col">
+			</tr>
+			
+		</tbody>
+	</table>
+</div>

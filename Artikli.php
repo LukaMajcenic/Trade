@@ -28,6 +28,9 @@ switch ($_SERVER['REQUEST_METHOD'])
 
 	case 'POST':
 		
+		$_POST = json_decode(file_get_contents('php://input'), true);
+		var_dump($_POST);
+
 		if(isset($_POST['Naziv']) && isset($_POST['Opis']) && isset($_POST['JedinicaMjere']) && isset($_POST['JedinicnaCijena']) && isset($_POST['SifraKategorije']))
 		{
 			$sQuery = "INSERT INTO artikli (Naziv, Opis, JedinicaMjere, JedinicnaCijena, SifraKategorije) VALUES (:Naziv, :Opis, :JedinicaMjere, :JedinicnaCijena, :SifraKategorije)";

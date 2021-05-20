@@ -17,6 +17,7 @@ function ChangeTheme()
 		document.documentElement.style.setProperty('--foreground', '#F5F5F5');
 
 		$('table').addClass('table-dark');
+		localStorage.setItem("darkTheme", true);
 	}
 	else
 	{
@@ -27,6 +28,7 @@ function ChangeTheme()
 		document.documentElement.style.setProperty('--foreground', '#262626');
 
 		$('table').removeClass('table-dark');
+		localStorage.setItem("darkTheme", false);
 	}
 		
 }

@@ -1,21 +1,17 @@
-<div class="d-flex customFlex">
-	<h4>DODAJ ARTIKL</h4>
-</div>
-
-<form ng-submit="Submit()" class="px-5 customForm" novalidate>
+<form ng-submit="submitParametar()" class="px-5 customForm" novalidate>
 	<div class="form-floating mt-3">
-		<input type="text" class="form-control customInput" id="floatingNaziv" placeholder=" " ng-model="NoviArtikl.Naziv">
+		<input type="text" class="form-control" id="floatingNaziv" placeholder=" " ng-model="artiklParametar.Naziv">
 		<label for="floatingNaziv">Naziv</label>
 	</div>
 
 	<div class="form-floating mt-3">
-		<textarea type="text" class="form-control customInput" rows="4" id="floatingOpis" placeholder=" " ng-model="NoviArtikl.Opis"></textarea>
+		<textarea type="text" class="form-control" rows="4" id="floatingOpis" placeholder=" " ng-model="artiklParametar.Opis"></textarea>
 		<label for="floatingOpis">Opis</label>
 	</div>
 
 	<div class="d-flex">
 		<div class="form-floating mt-3" style="flex: 1;">
-		<select class="form-select customInput" id="floatingJedinicaMjere" aria-label=" " ng-model="NoviArtikl.JedinicaMjere">
+		<select class="form-select" id="floatingJedinicaMjere" aria-label=" " ng-model="artiklParametar.JedinicaMjere">
 			<option value="Komad">Komad</option>
 			<option value="Kg">Kg</option>
 		</select>
@@ -26,11 +22,11 @@
 
 	<div class="d-flex">
 		<div class="form-floating mt-3" style="flex: 1">
-			<input type="number" min="0" step="0.01" class="form-control customInput" id="floatingJedinicnaCijena" placeholder=" " ng-model="NoviArtikl.JedinicnaCijena">
+			<input type="number" min="0" step="0.01" class="form-control" id="floatingJedinicnaCijena" placeholder=" " ng-model="artiklParametar.JedinicnaCijena">
 			<label for="floatingJedinicnaCijena">Jedinična cijena</label>
 		</div>
 		<div class="form-floating mt-3" style="width: 20%; margin-left: 2px;">
-			<select class="form-select customInput" id="floatingValuta" aria-label=" ">
+			<select class="form-select" id="floatingValuta" aria-label=" ">
 				<option selected>x</option>
 				<option value="1">y</option>
 			</select>
@@ -39,8 +35,8 @@
 	</div>
 
 	<div class="form-floating mt-3">
-		<select class="form-select customInput" id="floatingKategorija" aria-label=" " ng-model="NoviArtikl.SifraKategorije">
-			<option ng-repeat="Kategorija in Kategorije" value="{{Kategorija.SifraKategorije}}">{{Kategorija.Naziv}}</option>
+		<select class="form-select customInput" id="floatingKategorija" aria-label=" " ng-model="artiklParametar.Kategorija"
+		ng-options="Kategorija.Naziv for Kategorija in kategorijeParametar">
 		</select>
 		<label for="floatingKategorija">Kategorija</label>
 	</div>
