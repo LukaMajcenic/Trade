@@ -96,6 +96,20 @@ h4
 	border-radius: 0px;
 }
 
+.customIconButton
+{
+	font-size: 21px;
+	border: none;
+	border-radius: 50%;
+	background-color: transparent;
+	color: var(--customRed);
+}
+
+button:hover
+{
+	filter: brightness(110%);
+}
+
 .customButton
 {
 	border: none;
@@ -104,15 +118,17 @@ h4
 	padding: 10px;
 }
 
-.customButton:hover
+.customButtonInverted
 {
-	filter: brightness(110%);
+	border: none;
+	background-color: var(--backgroundDarker1);
+	color: var(--foreground);
+	padding: 10px;
 }
 
-.customButton i
+.customButton i, .customButtonInverted i
 {
-	color: rgba(255,255,255,0.3);
-	margin-left: 5px;
+	padding-left: 8px;
 }
 
 .customForm input,select,textarea
@@ -164,7 +180,7 @@ input:-webkit-autofill
 .table-hover>tbody>tr:hover 
 {
     --bs-table-accent-bg: var(--backgroundDarker1);
-    color: var(--bs-table-hover-color);
+    color: var(--foreground);
 }
 
 .table-hover>tbody>tr.noHoverEffect:hover 
@@ -172,7 +188,38 @@ input:-webkit-autofill
     --bs-table-accent-bg: var(--background);
 }
 
+.table
+{
+	color: var(--foreground);
+}
+
 thead
 {
-	border-bottom: 4px solid var(--customRed);
+	border-bottom: 4px solid var(--customRed) !important;
+}
+
+tbody, td, tfoot, th, thead, tr {
+    border-color: var(--backgroundDarker1);
+}
+
+.disabledRow
+{
+	opacity: 0.2;
+	pointer-events:none;
+}
+
+body::-webkit-scrollbar 
+{
+	width: 15px;               /* width of the entire scrollbar */
+}
+  
+body::-webkit-scrollbar-track 
+{
+	background: var(--backgroundDarker1);        /* color of the tracking area */
+}
+
+body::-webkit-scrollbar-thumb 
+{
+	background-color: var(--customRed);    /* color of the scroll thumb */
+	border: 2px solid var(--backgroundDarker1);  /* creates padding around scroll thumb */
 }

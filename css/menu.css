@@ -1,7 +1,6 @@
 nav
 {
-	background: rgb(153,0,0);
-	background: linear-gradient(90deg, rgba(153,0,0,1) 0%, rgba(153,0,0,1) 75%, limegreen 100%);
+	background: var(--customRed);
 }
 
 a:hover

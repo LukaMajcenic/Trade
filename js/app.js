@@ -43,7 +43,31 @@ oModul.controller('pregledArtiklaKontroler', function($scope, $http){
   	}
 });
 
-oModul.controller('dodajArtiklKontroler', function($scope, $http){
+oModul.factory('ValidationService', function()
+{
+	var factory = {};
+
+	factory.ValidateForm = function(selector)
+	{
+		let Valid = true;
+
+		$(selector).find('.validationLabel').remove();
+		$(selector).find('*').each(function()
+		{
+			if(($(this).prop('tagName') == 'INPUT' || $(this).prop('tagName') == 'TEXTAREA') && $(this).val() == '')
+			{
+				Valid = false;
+				$(this).after('<h3 class="validationLabel mb-2"><i class="fas fa-exclamation-circle me-1"></i>Polje ne može biti prazno!</h3>');
+			}
+		})
+
+		return Valid;
+	}
+
+	return factory;
+});
+
+oModul.controller('dodajArtiklKontroler', function($scope, $http, ValidationService){
 
 	$http.get("http://localhost/KV2/Artikli")
 	  .then(function(response) {
@@ -65,47 +89,10 @@ oModul.controller('dodajArtiklKontroler', function($scope, $http){
 
 	$scope.Submit = function()
 	{
-		var AllValid = true;
-
-		$('.customForm').find('.validationLabel').remove();
-		$('.customForm').find('*').each(function()
-		{
-			if(($(this).prop('tagName') == 'INPUT' || $(this).prop('tagName') == 'TEXTAREA') && $(this).val() == '')
-			{
-				if($(this).attr('type') == 'number')
-				{
-					$(this).val('');
-				}
-
-				//AllValid = false;
-				$(this).after('<h3 class="validationLabel mb-2"><i class="fas fa-exclamation-circle me-1"></i>Polje ne može biti prazno!</h3>');
-			}
-		})
-
-		if($('#floatingNaziv').val() != '')
-		{
-			var duplicate = false;
-			$scope.Artikli.forEach(function(item){
-				if(item.Naziv == $scope.NoviArtikl.Naziv && !duplicate)
-				{
-					$('#floatingNaziv').after('<h3 class="validationLabel mb-2"><i class="fas fa-exclamation-circle me-1"></i>Već postoji proizvod sa tim imenom!</h3>');
-					duplicate = true;
-				}
-			});
-
-			//AllValid = false;
-		}
-
-		if($scope.NoviArtikl.JedinicnaCijena === undefined)
-		{
-			//AllValid = false;
-			$('#floatingJedinicnaCijena').after('<h3 class="validationLabel mb-2"><i class="fas fa-exclamation-circle me-1"></i>Neispravan unos!</h3>');
-		}
-
-		if(AllValid)
+		if(ValidationService.ValidateForm('.customForm'))
 		{
 			console.log($scope.NoviArtikl);
-			$http.post("http://localhost/KV2/Artikli", JSON.stringify($scope.NoviArtikl))
+			$http.post("http://localhost/KV2/Artikli", $scope.NoviArtikl)
 			  .then(function(response) {
 			  	$('.customForm')[0].reset();
 			  }, function (response) {
@@ -114,13 +101,13 @@ oModul.controller('dodajArtiklKontroler', function($scope, $http){
 		}
 		else
 		{
-			console.log(AllValid);
+			console.log('Invalid form');
 		}
 	}
 
 });
-
-oModul.controller('urediArtikleKontroler', function($scope, $http){
+ 
+oModul.controller('urediArtikleKontroler', function($scope, $http, ValidationService){
 
 	$http.get("http://localhost/KV2/Artikli")
 	  .then(function(response) {
@@ -135,9 +122,62 @@ oModul.controller('urediArtikleKontroler', function($scope, $http){
 	    $scope.Kategorije = response.data;
 	  });
 
-	$scope.Submit = function()
+	$scope.Open = function(Artikl)
 	{
-		alert('xx');
+		$('tr:not(.noHoverEffect,.tableHeader)').addClass('disabledRow'); //dissables all rows except header and form
+		$('.customIconButton').prop('disabled', true);
+	}
+
+	$scope.Odustani = function(Artikl)
+	{
+		$http.get("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla)
+		.then(function(response) {
+			const index = $scope.Artikli.findIndex(x => x.SifraArtikla == Artikl.SifraArtikla);
+			$scope.Artikli[index] = response.data[0];
+
+			$('tr').removeClass('disabledRow'); //enables all rows
+			$('.customIconButton').prop('disabled', false);
+		});
+	}
+
+	$scope.Submit = function(Artikl)
+	{
+		console.log(Artikl);
+		if(ValidationService.ValidateForm('#form' + Artikl.SifraArtikla))
+		{
+			$('tr').removeClass('disabledRow'); //enables all rows
+			$('.customIconButton').prop('disabled', false);
+			$('.collapse').collapse('hide');
+			console.log(Artikl);
+
+			$http.put("http://localhost/KV2/Artikli", {
+				'SifraArtikla' : Artikl.SifraArtikla,
+				'Naziv': Artikl.Naziv,
+				'Opis': Artikl.Opis,
+				'JedinicaMjere': Artikl.JedinicaMjere,
+				'JedinicnaCijena': Artikl.JedinicnaCijena,
+				'SifraKategorije': '1'
+			})
+			  .then(function(response) {
+
+			  }, function (response) {
+
+			  });
+		}
+		else
+		{
+			console.log('Invalid form');
+		}
+	}
+
+	$scope.Delete = function(Artikl)
+	{
+		$http.delete("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla)
+		.then(function(response) {
+			let index = $scope.Artikli.indexOf(Artikl);
+			$scope.Artikli.splice(index, 1);
+			alert(response.xhrStatus);		
+		});
 	}
 });
 
@@ -146,9 +186,11 @@ oModul.directive('artiklForma', function(){
       restrict:'E',
       templateUrl:'direktive/artikl_forma',
       scope: {
-         artiklParametar: '=',
-		 kategorijeParametar: '=',
-		 submitParametar: '&'
+		metodaParametar: '=',
+		artiklParametar: '=',
+		kategorijeParametar: '=',
+		submitParametar: '&',
+		odustaniParametar: '&'
       },
    };
 });

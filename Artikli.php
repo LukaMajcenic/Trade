@@ -62,7 +62,7 @@ switch ($_SERVER['REQUEST_METHOD'])
 
 	case 'PUT':
 
-		parse_str(file_get_contents('php://input'), $_PUT);
+		$_PUT = json_decode(file_get_contents('php://input'), true);
 		
 		if(isset($_PUT['SifraArtikla']) && isset($_PUT['Naziv']) && isset($_PUT['Opis']) && isset($_PUT['JedinicaMjere']) && isset($_PUT['JedinicnaCijena']) && isset($_PUT['SifraKategorije']))
 		{
@@ -97,6 +97,7 @@ switch ($_SERVER['REQUEST_METHOD'])
 		{
 			http_response_code(400);
 			echo 'Nisu svi parametri postavljeni!';
+			var_dump($_PUT);
 		}
 		break;
 
