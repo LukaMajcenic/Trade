@@ -8,14 +8,6 @@ body
 	border-radius: 0px;
 }
 
-#themeBtn
-{
-	background-color: transparent;
-    border: none;
-    font-size: 20px;
-    color: white;
-}
-
 .card
 {
 	width: 18rem;
@@ -52,24 +44,6 @@ body
 	max-height: 50px;
 }
 
-.btn-check:active+.btn-outline-primary, .btn-check:checked+.btn-outline-primary, .btn-outline-primary.active, .btn-outline-primary.dropdown-toggle.show, .btn-outline-primary:active 
-{
-    background-color: var(--customRed);
-    border-color: var(--customRed);
-}
-
-.btn-outline-primary 
-{
-    color: var(--customRed);;
-    border-color: var(--customRed);
-}
-
-.btn-outline-primary:hover
-{
-    background-color: var(--customRed);
-    border-color: var(--customRed);
-}
-
 h4
 {
     border-bottom: 5px solid var(--customRed);
@@ -85,50 +59,9 @@ h4
     margin-bottom: 30px;
 }
 
-.btn-group-custom
-{
-	position: absolute;
-	right: 10px;
-}
-
 .form-control, .form-select
 {
 	border-radius: 0px;
-}
-
-.customIconButton
-{
-	font-size: 21px;
-	border: none;
-	border-radius: 50%;
-	background-color: transparent;
-	color: var(--customRed);
-}
-
-button:hover
-{
-	filter: brightness(110%);
-}
-
-.customButton
-{
-	border: none;
-	background-color: var(--customRed);
-	color: white;
-	padding: 10px;
-}
-
-.customButtonInverted
-{
-	border: none;
-	background-color: var(--backgroundDarker1);
-	color: var(--foreground);
-	padding: 10px;
-}
-
-.customButton i, .customButtonInverted i
-{
-	padding-left: 8px;
 }
 
 .customForm input,select,textarea
@@ -153,6 +86,18 @@ button:hover
 {
 	background-color: transparent;
 	color: var(--foreground);
+}
+
+.receiptContainer
+{
+	padding: 10px 8px 25px 8px;
+	background: rgb(238,238,238);
+	background: linear-gradient(59deg, var(--backgroundDarker1) 0%, var(--backgroundDarker2) 50%, var(--backgroundDarker1) 100%);
+}
+
+.dashedBorder
+{
+	border: 2px dashed var(--backgroundDarker1);
 }
 
 /* Change the white to any color */
@@ -193,7 +138,7 @@ input:-webkit-autofill
 	color: var(--foreground);
 }
 
-thead
+.table thead
 {
 	border-bottom: 4px solid var(--customRed) !important;
 }
@@ -222,4 +167,15 @@ body::-webkit-scrollbar-thumb
 {
 	background-color: var(--customRed);    /* color of the scroll thumb */
 	border: 2px solid var(--backgroundDarker1);  /* creates padding around scroll thumb */
+}
+
+.racunTable
+{
+	
+}
+
+.racunTable tbody
+{
+	border-top: 3px dashed var(--backgroundDarker2);
+	border-bottom: 3px dashed var(--backgroundDarker2);
 }

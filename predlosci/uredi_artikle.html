@@ -27,12 +27,12 @@
 				<td scope="col">{{Artikl.JedinicnaCijena}}</td>
 				<td scope="col">{{Artikl.Kategorija.Naziv}}</td>
 				<td scope="col" class="align-middle text-center">
-					<button class="customIconButton" ng-click="Open(Artikl)" data-bs-toggle="collapse" data-bs-target="#collapse{{Artikl.SifraArtikla}}" aria-expanded="false" aria-controls="collapse{{Artikl.SifraArtikla}}">
+					<button class="customIconButton customIconButtonRed" ng-click="Open(Artikl)" data-bs-toggle="collapse" data-bs-target="#collapse{{Artikl.SifraArtikla}}" aria-expanded="false" aria-controls="collapse{{Artikl.SifraArtikla}}">
 					    <i class="fas fa-cog"></i>
 					</button>
 				</td>
 				<td scope="col" class="align-middle text-center">
-					<button class="customIconButton" ng-click="Delete(Artikl)">
+					<button class="customIconButton customIconButtonRed" ng-click="Delete(Artikl)">
 					    <i class="fas fa-trash-alt"></i>
 					</button>
 				</td>
@@ -41,7 +41,7 @@
 				<td class="collapse collapse{{Artikl.SifraArtikla}}" id="collapse{{Artikl.SifraArtikla}}" scope="col" colspan="9">
 					<div class="collapse collapse{{Artikl.SifraArtikla}}" id="collapse{{Artikl.SifraArtikla}}">
 						<artikl-forma metoda-parametar="'PUT'" artikl-parametar="Artikl" kategorije-parametar="Kategorije" 
-						submit-parametar="Submit(Artikl)" odustani-parametar="Odustani(Artikl)"></artikl-forma>
+						submit-parametar="Submit(Artikl)" odustani-parametar="Odustani(Artikl)" change-parametar="Change(Artikl)"></artikl-forma>
 					</div>
 				</td>
 			</tr>

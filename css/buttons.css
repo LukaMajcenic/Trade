@@ -1,0 +1,86 @@
+#themeBtn
+{
+	background-color: transparent;
+    border: none;
+    font-size: 20px;
+    color: white;
+}
+
+.btn-check:active+.btn-outline-primary, .btn-check:checked+.btn-outline-primary, .btn-outline-primary.active, .btn-outline-primary.dropdown-toggle.show, .btn-outline-primary:active 
+{
+    background-color: var(--customRed);
+    border-color: var(--customRed);
+}
+
+.btn-outline-primary 
+{
+    color: var(--customRed);;
+    border-color: var(--customRed);
+}
+
+.btn-outline-primary:hover
+{
+    background-color: var(--customRed);
+    border-color: var(--customRed);
+}
+
+.btn-group-custom
+{
+	position: absolute;
+	right: 10px;
+}
+
+.customIconButton
+{
+	font-size: 21px;
+	border: none;
+	background-color: transparent;
+}
+
+.customIconButtonRed
+{
+	color: var(--customRed);
+}
+
+.customIconButtonForeground
+{
+    color: var(--foreground);
+}
+
+.customButton, .customButtonInverted
+{
+	border: none;
+	padding: 10px;
+	background-size: 200% 200%;
+  	transition: background-position 275ms, color 275ms;
+	background-position: top;
+}
+
+.customButton
+{	
+	background-color: var(--customRed);
+	color: white;	
+	background-image: linear-gradient(to top, red 50%, var(--customRed) 0);
+}
+
+.customButtonInverted
+{	
+	background-color: var(--backgroundDarker1);
+	color: var(--foreground);	
+  	background-image: linear-gradient(to top, var(--foreground) 50%, var(--backgroundDarker1) 0);  	
+}
+
+.customButton:hover, .customButtonInverted:hover
+{
+	background-position: bottom;
+}
+
+.customButtonInverted:hover
+{
+	color: var(--background);
+}
+
+.customButton i, .customButtonInverted i
+{
+	padding-left: 8px;
+}

@@ -57,21 +57,25 @@ a:hover
 	color: white;
 }
 
-.container {
-	position:absolute;
-    left:50%;
+.noviRacunContainer
+{
     margin-left:-66px;
-    padding: 8px 8px 32px 8px;
     background: limegreen;
     width: 132px;
-    padding-bottom: 25px;
-    padding-top: 0px;
     color: var(--background);
+    left:50%;
     -webkit-box-shadow: inset 0px 10px 20px -15px #000000; 
 	box-shadow: inset 0px 10px 20px -15px #000000;
+    padding: 0px 8px 25px 8px;
+    position: absolute !important;
 }
 
-.container:hover
+.container 
+{     
+    position:relative;   
+}
+
+.noviRacunContainer:hover
 {
 	padding-top: 5px;
 	cursor: pointer;

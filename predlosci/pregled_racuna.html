@@ -1,0 +1,32 @@
+<div class="d-flex customFlex">
+	<h4>PREGLED RAČUNA</h4>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3" style="justify-content: center;">
+	<table class="table table-hover">
+  		<thead>
+			<tr>
+				<th scope="col">Šifra računa</th>
+				<th scope="col">Šifra zaposlenika</th>
+				<th scope="col">Ukupan iznos</th>
+				<th scope="col">Datum</th>
+				<th scope="col">Stavke</th>
+				<th scope="col"></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="Racun in Racuni">
+				<td scope="col">{{Racun.SifraRacuna}}</td>
+				<td scope="col">{{Racun.SifraZaposlenika}}</td>
+				<td scope="col">{{Racun.UkupanIznos}}</td>
+				<td scope="col">{{Racun.Datum}}</td>
+				<td scope="col">{{Racun.Stavke.length}}</td>
+				<td scope="col" class="align-middle text-center">
+                    <button class="customIconButton">
+                        <a href="#!/pregled_racuna/1"><i class="fas fa-search"></i></a>
+                    </button>
+                </td>
+			</tr>
+		</tbody>
+	</table>
+</div>

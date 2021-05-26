@@ -5,6 +5,14 @@ oModul.config(function($routeProvider){
 		templateUrl: 'predlosci/naslovna.html',
 		controller: 'naslovnaKontroler'
 	});
+	$routeProvider.when('/pregled_racuna', {
+		templateUrl: 'predlosci/pregled_racuna.html',
+		controller: 'pregledRacunaKontroler'
+	});
+	$routeProvider.when('/pregled_racuna/:sifra_racuna', {
+		templateUrl: 'predlosci/pregled_jednog_racuna.html',
+		controller: 'pregledJednogRacunaKontroler'
+	});
 	$routeProvider.when('/pregled_artikla', {
 		templateUrl: 'predlosci/pregled_artikla.html',
 		controller: 'pregledArtiklaKontroler'
@@ -22,6 +30,25 @@ oModul.config(function($routeProvider){
 oModul.controller('prijavaKontroler', function($scope){
 	$scope.pozdravnaPoruka = "Nalazimo se na naslovnoj stranici";
 });
+
+oModul.controller('pregledRacunaKontroler', function($scope, $http){
+
+	$http.get("http://localhost/KV2/Racuni")
+	  .then(function(response) {
+	    $scope.Racuni = response.data;
+	  });
+
+});
+
+oModul.controller('pregledJednogRacunaKontroler', function($scope, $http, $routeParams){
+
+	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + $routeParams.sifra_racuna)
+	  .then(function(response) {
+	    $scope.Racun = response.data[0];
+	  });
+	  
+});
+
 
 oModul.controller('pregledArtiklaKontroler', function($scope, $http){
 
@@ -43,30 +70,6 @@ oModul.controller('pregledArtiklaKontroler', function($scope, $http){
   	}
 });
 
-oModul.factory('ValidationService', function()
-{
-	var factory = {};
-
-	factory.ValidateForm = function(selector)
-	{
-		let Valid = true;
-
-		$(selector).find('.validationLabel').remove();
-		$(selector).find('*').each(function()
-		{
-			if(($(this).prop('tagName') == 'INPUT' || $(this).prop('tagName') == 'TEXTAREA') && $(this).val() == '')
-			{
-				Valid = false;
-				$(this).after('<h3 class="validationLabel mb-2"><i class="fas fa-exclamation-circle me-1"></i>Polje ne može biti prazno!</h3>');
-			}
-		})
-
-		return Valid;
-	}
-
-	return factory;
-});
-
 oModul.controller('dodajArtiklKontroler', function($scope, $http, ValidationService){
 
 	$http.get("http://localhost/KV2/Artikli")
@@ -77,22 +80,35 @@ oModul.controller('dodajArtiklKontroler', function($scope, $http, ValidationServ
 	$http.get("http://localhost/KV2/Kategorije")
 	  .then(function(response) {
 	    $scope.Kategorije = response.data;
-	    $scope.NoviArtikl.SifraKategorije = response.data[0].SifraKategorije;
+	    $scope.NoviArtikl.Kategorija.SifraKategorije = response.data[0].SifraKategorije;
+
+		console.log($scope.NoviArtikl);
 	  });
 
 	$scope.NoviArtikl = {
 		Naziv: "",
 		Opis: "",
 		JedinicaMjere: "Komad",
-		JedinicnaCijena: ""
+		JedinicnaCijena: "",
+		Kategorija: {
+			SifraKategorije: null,
+			Naziv: ""
+		}
 	}
 
-	$scope.Submit = function()
+	$scope.Submit = function(NoviArtikl)
 	{
 		if(ValidationService.ValidateForm('.customForm'))
 		{
 			console.log($scope.NoviArtikl);
-			$http.post("http://localhost/KV2/Artikli", $scope.NoviArtikl)
+			$http.post("http://localhost/KV2/Artikli", {
+				'SifraArtikla' : NoviArtikl.SifraArtikla,
+				'Naziv': NoviArtikl.Naziv,
+				'Opis': NoviArtikl.Opis,
+				'JedinicaMjere': NoviArtikl.JedinicaMjere,
+				'JedinicnaCijena': NoviArtikl.JedinicnaCijena,
+				'SifraKategorije': NoviArtikl.Kategorija.SifraKategorije
+			})
 			  .then(function(response) {
 			  	$('.customForm')[0].reset();
 			  }, function (response) {
@@ -140,6 +156,12 @@ oModul.controller('urediArtikleKontroler', function($scope, $http, ValidationSer
 		});
 	}
 
+
+	$scope.Change = function(Artikl)
+	{
+		Artikl.Kategorija.Naziv = $scope.Kategorije.find(x => x.SifraKategorije == Artikl.Kategorija.SifraKategorije).Naziv;
+	}
+
 	$scope.Submit = function(Artikl)
 	{
 		console.log(Artikl);
@@ -156,7 +178,7 @@ oModul.controller('urediArtikleKontroler', function($scope, $http, ValidationSer
 				'Opis': Artikl.Opis,
 				'JedinicaMjere': Artikl.JedinicaMjere,
 				'JedinicnaCijena': Artikl.JedinicnaCijena,
-				'SifraKategorije': '1'
+				'SifraKategorije': Artikl.Kategorija.SifraKategorije
 			})
 			  .then(function(response) {
 
@@ -181,6 +203,7 @@ oModul.controller('urediArtikleKontroler', function($scope, $http, ValidationSer
 	}
 });
 
+
 oModul.directive('artiklForma', function(){
    return {
       restrict:'E',
@@ -190,7 +213,32 @@ oModul.directive('artiklForma', function(){
 		artiklParametar: '=',
 		kategorijeParametar: '=',
 		submitParametar: '&',
-		odustaniParametar: '&'
+		odustaniParametar: '&',
+		changeParametar: '&'
       },
    };
+});
+
+oModul.factory('ValidationService', function()
+{
+	var factory = {};
+
+	factory.ValidateForm = function(selector)
+	{
+		let Valid = true;
+
+		$(selector).find('.validationLabel').remove();
+		$(selector).find('*').each(function()
+		{
+			if(($(this).prop('tagName') == 'INPUT' || $(this).prop('tagName') == 'TEXTAREA') && $(this).val() == '')
+			{
+				Valid = false;
+				$(this).after('<h3 class="validationLabel mb-2"><i class="fas fa-exclamation-circle me-1"></i>Polje ne može biti prazno!</h3>');
+			}
+		})
+
+		return Valid;
+	}
+
+	return factory;
 });
