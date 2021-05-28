@@ -13,6 +13,10 @@ oModul.config(function($routeProvider){
 		templateUrl: 'predlosci/pregled_jednog_racuna.html',
 		controller: 'pregledJednogRacunaKontroler'
 	});
+	$routeProvider.when('/dodaj_racun', {
+		templateUrl: 'predlosci/dodaj_racun.html',
+		controller: 'dodajRacunKontroler'
+	});
 	$routeProvider.when('/pregled_artikla', {
 		templateUrl: 'predlosci/pregled_artikla.html',
 		controller: 'pregledArtiklaKontroler'
@@ -49,6 +53,83 @@ oModul.controller('pregledJednogRacunaKontroler', function($scope, $http, $route
 	  
 });
 
+oModul.controller('dodajRacunKontroler', function($scope, $http){
+
+	$scope.NoviRacun = {
+		UkupanIznos: 0.00,
+		Stavke: [{
+			Kolicina: 2,
+			UkupnaCijena: 13.99,
+			SifraArtikla: 1,
+			Naziv: "ffgfdgfdgfdgfdgfdgfdgfdgfdgdfgdfgfdgfd f",
+			Opis: "Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday",
+			JedinicaMjere: "Kg",
+			JedinicnaCijena: 232.00,
+			Slika: "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
+			Kategorija: {
+			  SifraKategorije: 1,
+			  Naziv: "Men's clothing"
+			}
+		  }]
+	}
+
+	$http.get("http://localhost/KV2/Artikli")
+	  .then(function(response) {
+	    $scope.Artikli = response.data;
+	  });
+
+	$scope.DodajStavku = function(Artikl)
+	{
+		let novaStavka = {
+			Kolicina: 1,
+			UkupnaCijena: 1*parseFloat(Artikl.JedinicnaCijena),
+			SifraArtikla: Artikl.SifraArtikla,
+			Naziv: Artikl.Naziv,
+			Opis:  Artikl.Opis,
+			JedinicaMjere: Artikl.JedinicaMjere,
+			JedinicnaCijena: parseFloat(Artikl.JedinicnaCijena),
+			Slika: Artikl.Slika,
+			Kategorija: Artikl.Kategorija
+		}
+		console.log(novaStavka);
+
+		$scope.NoviRacun.Stavke.push(novaStavka);
+
+		$scope.PromijeniUkupnuCijenu();
+	}
+
+	$scope.PromijeniUkupnuCijenu = function(Stavka = null)
+	{
+		if(Stavka != null)
+		{
+			Stavka.UkupnaCijena = Stavka.Kolicina * Stavka.JedinicnaCijena;
+		}
+
+		$scope.NoviRacun.UkupanIznos = 0.00;
+		$scope.NoviRacun.Stavke.forEach(function(value){
+			$scope.NoviRacun.UkupanIznos += value.UkupnaCijena;
+		})
+	}
+
+	$scope.ProvjeraArtikla = function(Artikl)
+	{
+		let PostojiNaRacunu = true;
+		$scope.NoviRacun.Stavke.forEach(function(value){
+			if(value.SifraArtikla == Artikl.SifraArtikla)
+			{
+				PostojiNaRacunu = false;
+			}
+		})
+
+		return PostojiNaRacunu;
+	}
+
+	$scope.UkloniStavku = function(Stavka)
+	{
+		$scope.NoviRacun.Stavke = $scope.NoviRacun.Stavke.filter(stavka => stavka.SifraArtikla != Stavka.SifraArtikla);
+	}
+	  
+});
 
 oModul.controller('pregledArtiklaKontroler', function($scope, $http){
 
