@@ -38,6 +38,8 @@ switch ($_SERVER['REQUEST_METHOD'])
 		break;
 
 	case 'POST':
+
+		$_POST = json_decode(file_get_contents('php://input'), true);
 		
 		if(isset($_POST['SifraArtikla']) && isset($_POST['Kolicina']) && isset($_POST['UkupnaCijena']) && isset($_POST['SifraRacuna']))
 		{

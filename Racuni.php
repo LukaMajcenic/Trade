@@ -7,26 +7,44 @@ switch ($_SERVER['REQUEST_METHOD'])
 {
 	case 'GET':
 
-		$sQuery = "SELECT * FROM racuni";
-		if(isset($_GET['SifraRacuna']))
+		if(!isset($_GET['SifraZaposlenika']))
 		{
-			$sQuery .= " WHERE SifraRacuna = '". $_GET['SifraRacuna'] ."'";
-		}
+			$sQuery = "SELECT * FROM racuni";
+			if(isset($_GET['SifraRacuna']))
+			{
+				$sQuery .= " WHERE SifraRacuna = '". $_GET['SifraRacuna'] ."'";
+			}
 
-		$oRecord = $oConnection->query($sQuery);
-		$Racuni = Array();
-		while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+			$oRecord = $oConnection->query($sQuery);
+			$Racuni = Array();
+			while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+			{
+				$Stavke = file_get_contents("http://localhost/KV2/Stavke?SifraRacuna=" . $oRow['SifraRacuna']);
+				$oRacun = new Racun($oRow['SifraRacuna'], $oRow['SifraZaposlenika'], $oRow['UkupanIznos'], $oRow['Datum'], $oRow['Storniran'], json_decode($Stavke));
+
+				array_push($Racuni, $oRacun);
+			}
+			header('Content-Type: application/json');
+			echo json_encode($Racuni);
+			break;
+		}
+		else
 		{
-			$Stavke = file_get_contents("http://localhost/KV2/Stavke?SifraRacuna=" . $oRow['SifraRacuna']);
-			$oRacun = new Racun($oRow['SifraRacuna'], $oRow['SifraZaposlenika'], $oRow['UkupanIznos'], $oRow['Datum'], json_decode($Stavke));
+			$sQuery = "SELECT SifraRacuna FROM racuni";
+			$sQuery .= " WHERE SifraZaposlenika = '". $_GET['SifraZaposlenika'] ."' ORDER BY SifraRacuna DESC LIMIT 1";
 
-			array_push($Racuni, $oRacun);
+			$oRecord = $oConnection->query($sQuery);
+			while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+			{
+				echo $oRow['SifraRacuna'];
+			}
+			header('Content-Type: application/json');
+			break;
 		}
-		header('Content-Type: application/json');
-		echo json_encode($Racuni);
-		break;
 
 	case 'POST':
+
+		$_POST = json_decode(file_get_contents('php://input'), true);
 		
 		if(isset($_POST['SifraZaposlenika']) && isset($_POST['UkupanIznos']) && isset($_POST['Datum']))
 		{
@@ -52,26 +70,23 @@ switch ($_SERVER['REQUEST_METHOD'])
 		{
 			http_response_code(400);
 			echo 'Nisu svi parametri postavljeni!';
+			var_dump($_POST);
 		}
 		break;
 
 	case 'PUT':
 
-		parse_str(file_get_contents('php://input'), $_PUT);
+		$_PUT = json_decode(file_get_contents('php://input'), true);
 		
-		if(isset($_PUT['SifraRacuna']) && isset($_PUT['SifraZaposlenika']) && isset($_PUT['UkupanIznos']) && isset($_PUT['Datum']))
+		if(isset($_PUT['SifraRacuna']))
 		{
 			$sQuery = "UPDATE racuni SET 
-				SifraZaposlenika = :SifraZaposlenika, 
-				UkupanIznos = :UkupanIznos, 
-				Datum = :Datum
+				Storniran = :Storniran
 				WHERE SifraRacuna = :SifraRacuna";
 			$oStatement = $oConnection->prepare($sQuery);
 			$oData = array(
 				'SifraRacuna' => $_PUT['SifraRacuna'],
-				'SifraZaposlenika' => $_PUT['SifraZaposlenika'],
-				'UkupanIznos' => $_PUT['UkupanIznos'],
-				'Datum' => $_PUT['Datum']
+				'Storniran' => '1'
 			);
 
 			if($oStatement->execute($oData))

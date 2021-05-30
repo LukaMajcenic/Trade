@@ -220,3 +220,34 @@ body::-webkit-scrollbar-thumb
 	border-top: 3px dashed var(--background);
 	border-bottom: 3px dashed var(--background);
 }
+
+.modal-content
+{
+	border-radius: 0px;
+	background-color: var(--backgroundDarker1);
+	color: var(--foreground);
+}
+
+.storniranRibbonReceipt
+{
+	position: absolute;
+    top: 60px;
+    right: 20px;
+    font-size: xx-large;
+    font-weight: 800;
+    color: red;
+    opacity: 0.3;
+    transform: rotate(16deg);
+    border: 5px solid red;
+}
+
+.storniranRibbonTable
+{
+	background-color: transparent;
+    border: 3px solid red;
+    color: red;
+    font-weight: 800;
+    opacity: 0.4;
+	padding-left: 17px;
+    padding-right: 17px;
+}

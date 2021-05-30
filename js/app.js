@@ -5,6 +5,7 @@ oModul.config(function($routeProvider){
 		templateUrl: 'predlosci/naslovna.html',
 		controller: 'naslovnaKontroler'
 	});
+
 	$routeProvider.when('/pregled_racuna', {
 		templateUrl: 'predlosci/pregled_racuna.html',
 		controller: 'pregledRacunaKontroler'
@@ -17,6 +18,15 @@ oModul.config(function($routeProvider){
 		templateUrl: 'predlosci/dodaj_racun.html',
 		controller: 'dodajRacunKontroler'
 	});
+	$routeProvider.when('/storniraj_racune', {
+		templateUrl: 'predlosci/storniraj_racune.html',
+		controller: 'stornirajRacuneKontroler'
+	});
+	$routeProvider.when('/storniraj_racune/:sifra_racuna', {
+		templateUrl: 'predlosci/storniraj_jedan_racun.html',
+		controller: 'stornirajJedanRacunKontroler'
+	});
+
 	$routeProvider.when('/pregled_artikla', {
 		templateUrl: 'predlosci/pregled_artikla.html',
 		controller: 'pregledArtiklaKontroler'
@@ -53,24 +63,11 @@ oModul.controller('pregledJednogRacunaKontroler', function($scope, $http, $route
 	  
 });
 
-oModul.controller('dodajRacunKontroler', function($scope, $http){
+oModul.controller('dodajRacunKontroler', function($scope, $http, $window){
 
 	$scope.NoviRacun = {
 		UkupanIznos: 0.00,
-		Stavke: [{
-			Kolicina: 2,
-			UkupnaCijena: 13.99,
-			SifraArtikla: 1,
-			Naziv: "ffgfdgfdgfdgfdgfdgfdgfdgfdgdfgdfgfdgfd f",
-			Opis: "Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday",
-			JedinicaMjere: "Kg",
-			JedinicnaCijena: 232.00,
-			Slika: "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
-			Kategorija: {
-			  SifraKategorije: 1,
-			  Naziv: "Men's clothing"
-			}
-		  }]
+		Stavke: []
 	}
 
 	$http.get("http://localhost/KV2/Artikli")
@@ -128,6 +125,96 @@ oModul.controller('dodajRacunKontroler', function($scope, $http){
 	{
 		$scope.NoviRacun.Stavke = $scope.NoviRacun.Stavke.filter(stavka => stavka.SifraArtikla != Stavka.SifraArtikla);
 	}
+
+	$scope.Submit = function()
+	{
+		let DatumRaw = new Date();
+		let Datum = DatumRaw.getFullYear() + '-'
+		+ (DatumRaw.getMonth()+1) + '-' 
+		+ DatumRaw.getMonth() + ' '
+		+ DatumRaw.getHours() + ':'
+		+ DatumRaw.getMinutes() + ':'
+		+ DatumRaw.getSeconds();
+
+		$http.post("http://localhost/KV2/Racuni", {
+				'SifraZaposlenika': 1,
+				'UkupanIznos': $scope.NoviRacun.UkupanIznos,
+				'Datum': Datum
+		})
+		.then(function(response) {
+
+			console.log(response);
+			$http.get("http://localhost/KV2/Racuni?SifraZaposlenika=1")
+			.then(function(response) {
+
+				console.log(response.data);
+				$scope.NoviRacun.Stavke.forEach(function(value){
+			
+					$http.post("http://localhost/KV2/Stavke", {
+						'SifraArtikla': value.SifraArtikla,
+						'Kolicina': value.Kolicina,
+						'UkupnaCijena': value.UkupnaCijena,
+						'SifraRacuna': response.data
+					})
+					.then(function(response) {
+						  console.log(response);
+					}, function (response) {
+		
+					});
+		
+				})
+			});
+			$window.location.href = '/KV2/#!/pregled_racuna';
+		}, function (response) {
+
+		});
+	}
+	  
+});
+
+oModul.controller('stornirajRacuneKontroler', function($scope, $http){
+
+	$http.get("http://localhost/KV2/Racuni")
+	  .then(function(response) {
+	    $scope.Racuni = response.data;
+	  });
+
+	$scope.Storniraj = function(Racun)
+	{
+		Racun.Storniran = true;
+
+		$http.put("http://localhost/KV2/Racuni", {
+				'SifraRacuna' : Racun.SifraRacuna
+		})
+		.then(function(response) {
+
+		}, function (response) {
+
+		});
+	}
+
+});
+
+oModul.controller('stornirajJedanRacunKontroler', function($scope, $http, $routeParams){
+
+	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + $routeParams.sifra_racuna)
+	  .then(function(response) {
+	    $scope.Racun = response.data[0];
+	  });
+
+	$scope.Storniraj = function(Racun)
+	  {
+		  Racun.Storniran = true;
+  
+		  $http.put("http://localhost/KV2/Racuni", {
+				  'SifraRacuna' : Racun.SifraRacuna
+		  })
+		  .then(function(response) {
+  
+		  }, function (response) {
+  
+		  });
+	  }
 	  
 });
 
@@ -298,6 +385,30 @@ oModul.directive('artiklForma', function(){
 		changeParametar: '&'
       },
    };
+});
+
+oModul.directive('racuniTable', function(){
+	return {
+	   restrict:'E',
+	   templateUrl:'direktive/racuni_table',
+	   scope: {
+		isAdminParametar: '=',
+		racuniParametar: '=',
+		stornirajParametar: '&'
+      },
+	};
+});
+
+oModul.directive('racunPrikaz', function(){
+	return {
+	   restrict:'E',
+	   templateUrl:'direktive/racun_prikaz',
+	   scope: {
+		isAdminParametar: '=',
+		racunParametar: '=',
+		stornirajParametar: '&'
+      },
+	};
 });
 
 oModul.factory('ValidationService', function()

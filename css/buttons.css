@@ -89,3 +89,28 @@
 {
 	padding-left: 8px;
 }
+
+.stornirajButton
+{
+	background-color: transparent !important;
+    background-image: linear-gradient(to top, #ffffff 50%, transparent 0) !important;
+    border: 3px solid var( --customRed) !important;
+    color: var( --customRed) !important;
+    font-weight: 900;
+    opacity: 0.7;
+}
+
+.customButtonStorniraj
+{
+	padding: 2px 6px 2px 6px !important;
+    font-weight: 700;
+    font-size: large;
+	background-color: rgb(255 0 0 / 40%);
+    color: var(--customRed);
+    background-image: linear-gradient(to top, rgba(255,0,0,0.4) 50%, var( --backgroundDarker1) 0);
+}
+
+.customButtonStorniraj:hover
+{
+	color: white;
+}

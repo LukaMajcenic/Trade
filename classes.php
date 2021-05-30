@@ -82,14 +82,16 @@ class Racun
 	public $SifraZaposlenika;
 	public $UkupanIznos;
 	public $Datum;
+	public $Storniran;
 	public $Stavke;
 
-	function __construct($SifraRacuna, $SifraZaposlenika, $UkupanIznos, $Datum, $Stavke)
+	function __construct($SifraRacuna, $SifraZaposlenika, $UkupanIznos, $Datum, $Storniran, $Stavke)
 	{
 		$this->SifraRacuna = $SifraRacuna;
 		$this->SifraZaposlenika = $SifraZaposlenika;
 		$this->UkupanIznos = $UkupanIznos;
 		$this->Datum = $Datum;
+		$this->Storniran = $Storniran;
 		$this->Stavke = $Stavke;
 	}
 }
