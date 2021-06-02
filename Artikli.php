@@ -18,7 +18,7 @@ switch ($_SERVER['REQUEST_METHOD'])
 		while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
 		{
 			$oKategorija = new Kategorija($oRow['SifraKategorije'], $oRow['NazivKategorije']);
-			$oArtikl = new Artikl($oRow['SifraArtikla'], $oRow['Naziv'], $oRow['Opis'], $oRow['JedinicaMjere'], $oRow['JedinicnaCijena'], $oRow['Slika'], $oKategorija);
+			$oArtikl = new Artikl((int)$oRow['SifraArtikla'], $oRow['Naziv'], $oRow['Opis'], $oRow['JedinicaMjere'], (float)$oRow['JedinicnaCijena'], $oRow['Slika'], $oKategorija);
 
 			array_push($Artikli, $oArtikl);
 		}

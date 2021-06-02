@@ -2,4 +2,8 @@
 	<h4>PREGLED RAČUNA</h4>
 </div>
 
-<racuni-table racuni-parametar="Racuni" is-admin-parametar="false"></racuni-table>
+<input type="checkbox" ng-model="PrikaziStornirane" ng-change="SetNgTable()">
+
+<input type="checkbox" ng-model="PrikaziNesortirane" ng-change="SetNgTable()">
+
+<racuni-table ng-table-params-parameter="tableParams" is-admin-parametar="false"></racuni-table>

@@ -2,8 +2,8 @@ const Gray = "#282828";
 const GrayDarker1 = "#333333";
 const GrayDarker2 = "#444444";
 
-const White = "#DDDDDD";
-const WhiteDarker1 = "#EEEEEE";
+const White = "#EAEAEA";
+const WhiteDarker1 = "#FBFBFB";
 const WhiteDarker2 = "#FFFFFF";
 
 document.documentElement.style.setProperty('--background', White);

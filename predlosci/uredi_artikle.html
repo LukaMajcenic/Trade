@@ -3,49 +3,44 @@
 </div>
 
 <div class="row row-cols-1 row-cols-md-3" style="justify-content: center;">
-	<table class="table table-hover">
-  		<thead>
-			<tr class="tableHeader">
-				<th scope="col"></th>
-				<th scope="col">Šifra artikla</th>
-				<th scope="col">Naziv</th>
-				<th scope="col">Opis</th>
-				<th scope="col">Jedinična mjera</th>
-				<th scope="col">Jedinična cijena</th>
-				<th scope="col">Kategorija</th>
-				<th scope="col">Uredi</th>
-				<th scope="col">Obriši</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat-start="Artikl in Artikli" id="{{Artikl.SifraArtikla}}">
-				<td scope="col"><img src="{{Artikl.Slika}}" class="tdImage"></td>
-				<td scope="col">{{Artikl.SifraArtikla}}</td>
-				<td scope="col">{{Artikl.Naziv}}</td>
-				<td scope="col">{{Artikl.Opis}}</td>
-				<td scope="col">{{Artikl.JedinicaMjere}}</td>
-				<td scope="col">{{Artikl.JedinicnaCijena}}</td>
-				<td scope="col">{{Artikl.Kategorija.Naziv}}</td>
-				<td scope="col" class="align-middle text-center">
-					<button class="customIconButton customIconButtonRed" ng-click="Open(Artikl)" data-bs-toggle="collapse" data-bs-target="#collapse{{Artikl.SifraArtikla}}" aria-expanded="false" aria-controls="collapse{{Artikl.SifraArtikla}}">
-					    <i class="fas fa-cog"></i>
-					</button>
-				</td>
-				<td scope="col" class="align-middle text-center">
-					<button class="customIconButton customIconButtonRed" ng-click="Delete(Artikl)">
-					    <i class="fas fa-trash-alt"></i>
-					</button>
-				</td>
-			</tr>
-			<tr ng-repeat-end class="noHoverEffect">
-				<td class="collapse collapse{{Artikl.SifraArtikla}}" id="collapse{{Artikl.SifraArtikla}}" scope="col" colspan="9">
-					<div class="collapse collapse{{Artikl.SifraArtikla}}" id="collapse{{Artikl.SifraArtikla}}">
-						<artikl-forma metoda-parametar="'PUT'" artikl-parametar="Artikl" kategorije-parametar="Kategorije" 
-						submit-parametar="Submit(Artikl)" odustani-parametar="Odustani(Artikl)" change-parametar="Change(Artikl)"></artikl-forma>
-					</div>
-				</td>
-			</tr>
-			
-		</tbody>
+	<table ng-table="tableParams" class="table" show-filter="true">
+		<tr ng-repeat-start="Artikl in $data">
+			<td title="'Šifra artikla'" filter="{ SifraArtikla: 'number'}" sortable="'SifraArtikla'">
+				{{Artikl.SifraArtikla}}
+			</td>
+			<td title="'Naziv'" filter="{ Naziv: 'text'}" sortable="'Naziv'">
+				{{Artikl.Naziv}}
+			</td>
+			<td title="'Opis'" filter="{ Opis: 'text'}" sortable="'Opis'">
+				{{Artikl.Opis}}
+			</td>
+			<td title="'Jedinica mjere'" filter="{ JedinicaMjere: 'text'}" sortable="'JedinicaMjere'">
+				{{Artikl.JedinicaMjere}}
+			</td>
+			<td title="'Jedinična cijena'" filter="{ JedinicnaCijena: 'number'}" sortable="'JedinicnaCijena'">
+				{{Artikl.JedinicnaCijena}}
+			</td>
+			<td title="'Kategorija'" sortable="'Kategorija.Naziv'">
+				{{Artikl.Kategorija.Naziv}}
+			</td>
+			<td class="align-middle text-center">
+				<button class="customIconButton customIconButtonRed" ng-click="Open(Artikl)" data-bs-toggle="collapse" data-bs-target="#collapse{{Artikl.SifraArtikla}}" aria-expanded="false" aria-controls="collapse{{Artikl.SifraArtikla}}">
+					<i class="fas fa-cog"></i>
+				</button>
+			</td>
+			<td class="align-middle text-center">
+				<button class="customIconButton customIconButtonRed" ng-click="Delete(Artikl)">
+					<i class="fas fa-trash-alt"></i>
+				</button>
+			</td>
+		</tr>
+		<tr ng-repeat-end class="noHoverEffect">
+			<td class="collapse collapse{{Artikl.SifraArtikla}}" id="collapse{{Artikl.SifraArtikla}}" scope="col" colspan="9">
+				<div class="collapse collapse{{Artikl.SifraArtikla}}" id="collapse{{Artikl.SifraArtikla}}">
+					<artikl-forma metoda-parametar="'PUT'" artikl-parametar="Artikl" kategorije-parametar="Kategorije" 
+					submit-parametar="Submit(Artikl)" odustani-parametar="Odustani(Artikl)" change-parametar="Change(Artikl)"></artikl-forma>
+				</div>
+			</td>
+		</tr>
 	</table>
 </div>

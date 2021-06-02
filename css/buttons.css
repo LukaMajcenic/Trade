@@ -24,22 +24,11 @@
     border-color: var(--customRed);
 }
 
-.btn-group-custom
-{
-	position: absolute;
-	right: 10px;
-}
-
 .customIconButton
 {
 	font-size: 21px;
 	border: none;
 	background-color: transparent;
-}
-
-.customIconButtonRed
-{
-	color: var(--customRed);
 }
 
 .customIconButtonRed i, .customIconButtonRed i:hover
@@ -113,4 +102,11 @@
 .customButtonStorniraj:hover
 {
 	color: white;
+}
+
+.novaStavkaButton
+{
+	background-image: linear-gradient(to top, rgba(50, 305, 50, 0.2) 50%, rgba(50, 305, 50, 0.1) 0);
+    background-color: rgba(50, 305, 50, 0.1);
+    color: limegreen;
 }

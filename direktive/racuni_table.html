@@ -1,39 +1,38 @@
 <div class="row row-cols-1 row-cols-md-3" style="justify-content: center;">
-	<table class="table table-hover">
-  		<thead>
-			<tr>
-				<th scope="col">Šifra računa</th>
-				<th scope="col">Šifra zaposlenika</th>
-				<th scope="col">Ukupan iznos</th>
-				<th scope="col">Datum</th>
-				<th scope="col">Stavke</th>
-				<th scope="col"></th>
-                <th scope="col"></th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="Racun in racuniParametar">
-				<td scope="col">{{Racun.SifraRacuna}}</td>
-				<td scope="col">{{Racun.SifraZaposlenika}}</td>
-				<td scope="col">{{Racun.UkupanIznos}}</td>
-				<td scope="col">{{Racun.Datum}}</td>
-				<td scope="col">{{Racun.Stavke.length}}</td>
-				<td scope="col" class="align-middle text-center">
-					<button ng-if="Racun.Storniran == 0 && isAdminParametar == true" class="customButton customButtonStorniraj"
-					ng-click="stornirajParametar({param: Racun})">
-                        STORNIRAJ<i class="fas fa-undo"></i>
-                    </button>
-					<button ng-if="Racun.Storniran == 1" class="storniranRibbonTable" disabled>STORNIRAN</button>
-				</td>
-				<td scope="col" class="align-middle text-center">
-                    <button ng-if="isAdminParametar == false" class="customIconButton customIconButtonRed">
-                        <a href="#!/pregled_racuna/{{Racun.SifraRacuna}}"><i class="fas fa-search"></i></a>
-                    </button>
-					<button ng-if="isAdminParametar == true" class="customIconButton customIconButtonRed">
-                        <a href="#!/storniraj_racune/{{Racun.SifraRacuna}}"><i class="fas fa-search"></i></a>
-                    </button>
-                </td>
-			</tr>
-		</tbody>
+
+	<table ng-table="ngTableParamsParameter" class="table table-hover">
+		<tr ng-if="tableParams._settings.dataset != 0" ng-repeat="Racun in $data">
+			<td title="'Šifra računa'" filter="{ SifraRacuna: 'number'}" sortable="'SifraRacuna'">
+				{{Racun.SifraRacuna}}
+			</td>
+			<td title="'Šifra zaposlenika'" filter="{ SifraZaposlenika: 'number'}" sortable="'SifraZaposlenika'">
+				{{Racun.SifraZaposlenika}}
+			</td>
+			<td title="'Ukupan iznos'" filter="{ UkupanIznos: 'number'}" sortable="'UkupanIznos'">
+				{{Racun.UkupanIznos}}
+			</td>
+			<td title="'Datum'" filter="{ Datum: 'text'}" sortable="'Datum'">
+				{{Racun.Datum}}
+			</td>
+			<td title="'Stavke'" filter="{ StavkeLength: 'number'}" sortable="'StavkeLength'">
+				{{Racun.StavkeLength}}
+			</td>
+			<td class="align-middle text-center">
+				<button ng-if="Racun.Storniran == 0 && isAdminParametar == true" class="customButton customButtonStorniraj"
+				ng-click="stornirajParametar({param: Racun})">
+					STORNIRAJ<i class="fas fa-undo"></i>
+				</button>
+				<button ng-if="Racun.Storniran == 1" class="storniranRibbonTable" disabled>STORNIRAN</button>
+			</td>
+			<td class="align-middle text-center">
+				<button ng-if="isAdminParametar == false" class="customIconButton customIconButtonRed">
+					<a href="#!/pregled_racuna/{{Racun.SifraRacuna}}"><i class="fas fa-search"></i></a>
+				</button>
+				<button ng-if="isAdminParametar == true" class="customIconButton customIconButtonRed">
+					<a href="#!/storniraj_racune/{{Racun.SifraRacuna}}"><i class="fas fa-search"></i></a>
+				</button>
+			</td>
+		</tr>
 	</table>
+
 </div>

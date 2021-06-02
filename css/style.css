@@ -171,15 +171,6 @@ input:-webkit-autofill
 	color: var(--foreground);
 }
 
-.table thead
-{
-	border-bottom: 4px solid var(--customRed) !important;
-}
-
-tbody, td, tfoot, th, thead, tr {
-    border-color: var(--backgroundDarker1);
-}
-
 .disabledRow
 {
 	opacity: 0.2;
@@ -250,4 +241,137 @@ body::-webkit-scrollbar-thumb
     opacity: 0.4;
 	padding-left: 17px;
     padding-right: 17px;
+}
+
+.table>thead
+{
+	border-bottom: 4px solid var(--customRed);
+	border-top: none;
+}
+
+tbody, td, tfoot, th, thead, tr 
+{
+    border-style: none;
+}
+
+.sortRow th:hover
+{
+	cursor: pointer;
+	color: var(--customRed);
+}
+
+.table tr
+{
+	border-bottom: 1px solid var(--backgroundDarker1);
+}
+
+.table .form-control 
+{
+	background-color: var(--backgroundDarker1);
+	border: none;	
+}
+
+.table .form-control:focus 
+{
+    border: none;
+    box-shadow: none;
+}
+
+.ng-table th.sortable.sort-asc, .ng-table th.sortable.sort-desc 
+{
+    background-color: none !important;
+    text-shadow: none !important;
+}
+
+.ng-table th.sortable .sort-indicator:after, .ng-table th.sortable .sort-indicator:before 
+{
+    border-color: var(--customRed) transparent !important;
+}
+
+.ng-table-counts
+{
+	background-color: var(--backgroundDarker1);
+}
+
+.ng-table-counts button
+{
+	border: 2px solid var(--background);
+	border-radius: 0px !important;
+	color: var(--foreground);
+}
+
+.ng-table-counts button:hover
+{
+	background-color: var(--backgroundDarker2);
+	color: var(--foreground);
+}
+
+.ng-table-counts button.active
+{
+	background-color: var(--customRed);
+	color: white;
+}
+
+.btn-check:focus+.btn, .btn:focus 
+{
+    box-shadow: none !important;
+}
+
+.ng-scope.ng-isolate-scope[ng-table-pagination="params"]
+{
+	width: 100%;
+	display: flex;
+	justify-content: center;
+}
+
+.ng-scope.ng-isolate-scope .pagination
+{
+	justify-content: center;
+	margin-top: 10px;
+} 
+
+.page-link, .page-item.disabled .page-link 
+{
+	background-color: var(--backgroundDarker2);
+	color: var(--foreground);
+	border: 2px solid var(--background);
+}
+
+.page-item.disabled .page-link 
+{
+	opacity: 0.5;
+}
+
+.page-item:first-child .page-link
+{
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+.page-item:last-child .page-link
+{
+	border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.page-link:hover
+{
+	background-color: var(--customRed);
+	color: white;
+}
+
+.page-item.ng-scope.active .page-link
+{
+	background-color: var(--customRed);
+	color: white;
+}
+
+.ng-table th.sortable.sort-asc, .ng-table th.sortable.sort-desc 
+{
+    background-color: rgba(255, 0, 0, 0.1) !important;
+}
+
+.additionalOptionsDiv
+{
+	background-color: var(--backgroundDarker1);
 }

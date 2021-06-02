@@ -1,4 +1,4 @@
-var oModul = angular.module('oModul', ['ngRoute']);
+var oModul = angular.module('oModul', ['ngRoute', 'ngTable']);
 
 oModul.config(function($routeProvider){
 	$routeProvider.when('/naslovna', {
@@ -6,35 +6,49 @@ oModul.config(function($routeProvider){
 		controller: 'naslovnaKontroler'
 	});
 
+	//Pregled svih racuna
 	$routeProvider.when('/pregled_racuna', {
 		templateUrl: 'predlosci/pregled_racuna.html',
 		controller: 'pregledRacunaKontroler'
 	});
+
+	//Pregled jednog racuna
 	$routeProvider.when('/pregled_racuna/:sifra_racuna', {
 		templateUrl: 'predlosci/pregled_jednog_racuna.html',
 		controller: 'pregledJednogRacunaKontroler'
 	});
+
+	//Dodavanje racuna
 	$routeProvider.when('/dodaj_racun', {
 		templateUrl: 'predlosci/dodaj_racun.html',
 		controller: 'dodajRacunKontroler'
 	});
+
+	//Storniranje racuna - prikaz svih
 	$routeProvider.when('/storniraj_racune', {
 		templateUrl: 'predlosci/storniraj_racune.html',
 		controller: 'stornirajRacuneKontroler'
 	});
+
+	//Storniranje racuna - prikaz jednog
 	$routeProvider.when('/storniraj_racune/:sifra_racuna', {
 		templateUrl: 'predlosci/storniraj_jedan_racun.html',
 		controller: 'stornirajJedanRacunKontroler'
 	});
 
+	//Pregled artikala
 	$routeProvider.when('/pregled_artikla', {
 		templateUrl: 'predlosci/pregled_artikla.html',
 		controller: 'pregledArtiklaKontroler'
 	});
+
+	//Dodavanje artikala
 	$routeProvider.when('/dodaj_artikl', {
 		templateUrl: 'predlosci/dodaj_artikl.html',
 		controller: 'dodajArtiklKontroler'
 	});
+
+	//Uredivanje artikala
 	$routeProvider.when('/uredi_artikle', {
 		templateUrl: 'predlosci/uredi_artikle.html',
 		controller: 'urediArtikleKontroler'
@@ -45,12 +59,48 @@ oModul.controller('prijavaKontroler', function($scope){
 	$scope.pozdravnaPoruka = "Nalazimo se na naslovnoj stranici";
 });
 
-oModul.controller('pregledRacunaKontroler', function($scope, $http){
+oModul.controller('pregledRacunaKontroler', function($scope, $http, NgTableParams){
+
+	$scope.SetNgTable = function()
+	{
+		let SortiraniRacuni = $scope.Racuni;
+		if(!$scope.PrikaziStornirane)
+		{
+			SortiraniRacuni = SortiraniRacuni.filter(x =>
+				x.Storniran == false)
+		}
+
+		if(!$scope.PrikaziNesortirane)
+		{
+			SortiraniRacuni = SortiraniRacuni.filter(x =>
+				x.Storniran == true)
+		}
+
+		$scope.tableParams._settings.dataset = SortiraniRacuni;
+		$scope.tableParams.reload();
+	}
 
 	$http.get("http://localhost/KV2/Racuni")
 	  .then(function(response) {
 	    $scope.Racuni = response.data;
+
+		$scope.Racuni.forEach(function(value){
+			value.StavkeLength = value.Stavke.length;
+		})
+		
+		$scope.tableParams = new NgTableParams(
+			{
+				sorting: 
+				{
+					Datum: 'desc'
+				},
+			});
+
+		$scope.SetNgTable();
 	  });
+
+	$scope.PrikaziStornirane = false;
+	$scope.PrikaziNesortirane = true;
 
 });
 
@@ -131,10 +181,12 @@ oModul.controller('dodajRacunKontroler', function($scope, $http, $window){
 		let DatumRaw = new Date();
 		let Datum = DatumRaw.getFullYear() + '-'
 		+ (DatumRaw.getMonth()+1) + '-' 
-		+ DatumRaw.getMonth() + ' '
+		+ DatumRaw.getDate() + ' '
 		+ DatumRaw.getHours() + ':'
 		+ DatumRaw.getMinutes() + ':'
 		+ DatumRaw.getSeconds();
+
+		console.log(Datum);
 
 		$http.post("http://localhost/KV2/Racuni", {
 				'SifraZaposlenika': 1,
@@ -172,11 +224,23 @@ oModul.controller('dodajRacunKontroler', function($scope, $http, $window){
 	  
 });
 
-oModul.controller('stornirajRacuneKontroler', function($scope, $http){
+oModul.controller('stornirajRacuneKontroler', function($scope, $http, NgTableParams){
 
 	$http.get("http://localhost/KV2/Racuni")
 	  .then(function(response) {
 	    $scope.Racuni = response.data;
+
+		$scope.Racuni.forEach(function(value){
+			value.StavkeLength = value.Stavke.length;
+		})
+		
+		$scope.tableParams = new NgTableParams(
+			{
+				sorting: 
+				{
+					Datum: 'desc'
+				},
+			}, { dataset: response.data});
 	  });
 
 	$scope.Storniraj = function(Racun)
@@ -218,11 +282,21 @@ oModul.controller('stornirajJedanRacunKontroler', function($scope, $http, $route
 	  
 });
 
-oModul.controller('pregledArtiklaKontroler', function($scope, $http){
+oModul.controller('pregledArtiklaKontroler', function($scope, $http, NgTableParams){
 
 	$http.get("http://localhost/KV2/Artikli")
 	  .then(function(response) {
 	    $scope.Artikli = response.data;
+
+		console.log($scope.Artikli);
+
+		$scope.tableParams = new NgTableParams(
+			{
+				sorting: 
+				{
+					SifraArtikla: 'asc'
+				},
+			}, { dataset: response.data});
 	  });
 
   	$scope.ShowCards = function()
@@ -236,6 +310,14 @@ oModul.controller('pregledArtiklaKontroler', function($scope, $http){
   		$('#pregledArtiklaTable').removeClass('displayNone');
 		$('#pregledArtiklaCards').addClass('displayNone');
   	}
+
+	$scope.propertyName = 'SifraArtikla';
+  	$scope.reverse = false;
+
+	$scope.sortBy = function(propertyName) {
+		$scope.reverse = ($scope.propertyName == propertyName) ? !$scope.reverse : false;
+		$scope.propertyName = propertyName;
+	};
 });
 
 oModul.controller('dodajArtiklKontroler', function($scope, $http, ValidationService){
@@ -291,14 +373,19 @@ oModul.controller('dodajArtiklKontroler', function($scope, $http, ValidationServ
 
 });
  
-oModul.controller('urediArtikleKontroler', function($scope, $http, ValidationService){
+oModul.controller('urediArtikleKontroler', function($scope, $http, ValidationService, NgTableParams){
 
 	$http.get("http://localhost/KV2/Artikli")
 	  .then(function(response) {
 	    $scope.Artikli = response.data;
-		$scope.Artikli.forEach(function(value){
-			value.JedinicnaCijena = parseFloat(value.JedinicnaCijena);
-		})
+
+		$scope.tableParams = new NgTableParams(
+			{
+				sorting: 
+				{
+					SifraArtikla: 'asc'
+				},
+			}, { dataset: response.data});
 	  });
 
 	$http.get("http://localhost/KV2/Kategorije")
@@ -366,7 +453,7 @@ oModul.controller('urediArtikleKontroler', function($scope, $http, ValidationSer
 		.then(function(response) {
 			let index = $scope.Artikli.indexOf(Artikl);
 			$scope.Artikli.splice(index, 1);
-			alert(response.xhrStatus);		
+			$scope.tableParams.reload();
 		});
 	}
 });
@@ -393,7 +480,7 @@ oModul.directive('racuniTable', function(){
 	   templateUrl:'direktive/racuni_table',
 	   scope: {
 		isAdminParametar: '=',
-		racuniParametar: '=',
+		ngTableParamsParameter: '=',
 		stornirajParametar: '&'
       },
 	};
