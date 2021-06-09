@@ -3,6 +3,8 @@
 include 'classes.php';
 include 'connection.php';
 
+
+
 switch ($_SERVER['REQUEST_METHOD']) 
 {
 	case 'GET':
@@ -18,7 +20,7 @@ switch ($_SERVER['REQUEST_METHOD'])
 		while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
 		{
 			$oKategorija = new Kategorija($oRow['SifraKategorije'], $oRow['NazivKategorije']);
-			$oArtikl = new Artikl((int)$oRow['SifraArtikla'], $oRow['Naziv'], $oRow['Opis'], $oRow['JedinicaMjere'], (float)$oRow['JedinicnaCijena'], $oRow['Slika'], $oKategorija);
+			$oArtikl = new Artikl((int)$oRow['SifraArtikla'], $oRow['Naziv'], $oRow['Opis'], $oRow['JedinicaMjere'], (float)$oRow['JedinicnaCijena'], $oRow['Slika'], $oKategorija, $oRow['SifraValute']);
 
 			array_push($Artikli, $oArtikl);
 		}
@@ -31,16 +33,17 @@ switch ($_SERVER['REQUEST_METHOD'])
 		$_POST = json_decode(file_get_contents('php://input'), true);
 		var_dump($_POST);
 
-		if(isset($_POST['Naziv']) && isset($_POST['Opis']) && isset($_POST['JedinicaMjere']) && isset($_POST['JedinicnaCijena']) && isset($_POST['SifraKategorije']))
+		if(isset($_POST['Naziv']) && isset($_POST['Opis']) && isset($_POST['JedinicaMjere']) && isset($_POST['JedinicnaCijena']) && isset($_POST['SifraKategorije']) && isset($_POST['SifraValute']))
 		{
-			$sQuery = "INSERT INTO artikli (Naziv, Opis, JedinicaMjere, JedinicnaCijena, SifraKategorije) VALUES (:Naziv, :Opis, :JedinicaMjere, :JedinicnaCijena, :SifraKategorije)";
+			$sQuery = "INSERT INTO artikli (Naziv, Opis, JedinicaMjere, JedinicnaCijena, SifraKategorije, SifraValute) VALUES (:Naziv, :Opis, :JedinicaMjere, :JedinicnaCijena, :SifraKategorije, :SifraValute)";
 			$oStatement = $oConnection->prepare($sQuery);
 			$oData = array(
 				'Naziv' => $_POST['Naziv'],
 				'Opis' => $_POST['Opis'],
 				'JedinicaMjere' => $_POST['JedinicaMjere'],
 				'JedinicnaCijena' => $_POST['JedinicnaCijena'],
-				'SifraKategorije' => $_POST['SifraKategorije']
+				'SifraKategorije' => $_POST['SifraKategorije'],
+				'SifraValute' => $_POST['SifraValute']
 			);
 
 			if($oStatement->execute($oData))

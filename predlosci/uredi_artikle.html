@@ -2,22 +2,26 @@
 	<h4>UREDI ARTIKLE</h4>
 </div>
 
+<artikl-filtriranje table-params-parametar="tableParams" 
+filter-object-parametar="FilterObject"
+filter-change-parametar="FilterChange()"></artikl-filtriranje>
+
 <div class="row row-cols-1 row-cols-md-3" style="justify-content: center;">
-	<table ng-table="tableParams" class="table" show-filter="true">
+	<table ng-table="tableParams" class="table">
 		<tr ng-repeat-start="Artikl in $data">
-			<td title="'Šifra artikla'" filter="{ SifraArtikla: 'number'}" sortable="'SifraArtikla'">
+			<td title="'Šifra artikla'" sortable="'SifraArtikla'">
 				{{Artikl.SifraArtikla}}
 			</td>
-			<td title="'Naziv'" filter="{ Naziv: 'text'}" sortable="'Naziv'">
+			<td title="'Naziv'" sortable="'Naziv'">
 				{{Artikl.Naziv}}
 			</td>
-			<td title="'Opis'" filter="{ Opis: 'text'}" sortable="'Opis'">
+			<td title="'Opis'" sortable="'Opis'">
 				{{Artikl.Opis}}
 			</td>
-			<td title="'Jedinica mjere'" filter="{ JedinicaMjere: 'text'}" sortable="'JedinicaMjere'">
+			<td title="'Jedinica mjere'" sortable="'JedinicaMjere'">
 				{{Artikl.JedinicaMjere}}
 			</td>
-			<td title="'Jedinična cijena'" filter="{ JedinicnaCijena: 'number'}" sortable="'JedinicnaCijena'">
+			<td title="'Jedinična cijena'" sortable="'JedinicnaCijena'">
 				{{Artikl.JedinicnaCijena}}
 			</td>
 			<td title="'Kategorija'" sortable="'Kategorija.Naziv'">

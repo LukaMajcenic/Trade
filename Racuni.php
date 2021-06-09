@@ -3,6 +3,31 @@
 include 'classes.php';
 include 'connection.php';
 
+function DohvatiStavke($oConnection, $SifraRacuna)
+{
+	$sQuery = "SELECT * FROM stavke INNER JOIN artikli ON stavke.SifraArtikla = artikli.SifraArtikla";
+	$sQuery .= " WHERE SifraRacuna = '". $SifraRacuna ."'";
+
+	$oRecord = $oConnection->query($sQuery);
+	$Stavke = Array();
+	while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+	{
+		$sQueryKategorije = "SELECT * FROM kategorije WHERE SifraKategorije = '". $oRow['SifraKategorije'] ."'";
+		$oRecordKategorija = $oConnection->query($sQueryKategorije);
+
+		while($oRowKategorija = $oRecordKategorija->fetch(PDO::FETCH_BOTH))
+		{
+			$oKategorija = new Kategorija($oRowKategorija['SifraKategorije'], $oRowKategorija['NazivKategorije']);
+		}
+
+		$oStavka = new Stavka($oRow['Kolicina'], $oRow['UkupnaCijena'], $oRow['SifraArtikla'], $oRow['Naziv'], $oRow['Opis'], $oRow['JedinicaMjere'], $oRow['JedinicnaCijena'], $oRow['Slika'], $oKategorija);
+
+		array_push($Stavke, $oStavka);
+	}
+
+	return $Stavke;
+}
+
 switch ($_SERVER['REQUEST_METHOD']) 
 {
 	case 'GET':
@@ -19,8 +44,8 @@ switch ($_SERVER['REQUEST_METHOD'])
 			$Racuni = Array();
 			while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
 			{
-				$Stavke = file_get_contents("http://localhost/KV2/Stavke?SifraRacuna=" . $oRow['SifraRacuna']);
-				$oRacun = new Racun($oRow['SifraRacuna'], $oRow['SifraZaposlenika'], $oRow['UkupanIznos'], $oRow['Datum'], $oRow['Storniran'], json_decode($Stavke));
+				$Stavke = DohvatiStavke($oConnection, $oRow['SifraRacuna']);
+				$oRacun = new Racun((int)$oRow['SifraRacuna'], (int)$oRow['SifraZaposlenika'], (float)$oRow['UkupanIznos'], $oRow['Datum'], $oRow['Storniran'], $Stavke);
 
 				array_push($Racuni, $oRacun);
 			}

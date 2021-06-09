@@ -1,6 +1,6 @@
 <form ng-submit="submitParametar(artiklParametar)" class="customForm" id="form{{artiklParametar.SifraArtikla}}" novalidate>
 	<div class="form-floating mt-3">
-		<input type="text" class="form-control" id="floatingNaziv" placeholder=" " ng-model="artiklParametar.Naziv">
+		<input type="text" class="form-control" id="floatingNaziv" placeholder=" " ng-model="artiklParametar.Naziv" autocomplete="off">
 		<label for="floatingNaziv">Naziv</label>
 	</div>
 
@@ -24,12 +24,13 @@
 			<input type="number" min="0" step="0.01" class="form-control" id="floatingJedinicnaCijena" placeholder=" " ng-model="artiklParametar.JedinicnaCijena">
 			<label for="floatingJedinicnaCijena">Jedinična cijena</label>
 		</div>
-		<div class="form-floating mt-3" style="width: 20%; margin-left: 2px;">
-			<select class="form-select" id="floatingValuta" aria-label=" ">
-				<option selected>x</option>
-				<option value="1">y</option>
-			</select>
+		<div class="form-floating mt-3" style="width: 40%; margin-left: 2px;">
+			<input type="text" class="form-control" id="floatingValuta" placeholder=" " 
+			ng-model="artiklParametar.SifraValute" list="Valute">
 			<label for="floatingValuta">Valuta</label>
+			<datalist id="Valute">
+				<option ng-repeat="Valuta in valuteParametar" value="{{Valuta.SifraValute}}">{{Valuta.NazivValute}}</option>
+			</datalist>
 		</div>
 	</div>
 
@@ -49,5 +50,7 @@
 	
 	<button type="reset" class="customButtonInverted ms-auto">OČISTI INPUTE<i class="fas fa-ban"></i></button>
 	</div>
+
+	<div ng-repeat="Valuta in Valute">{{Valute.length}}</div>
 	
 </form>

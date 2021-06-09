@@ -17,7 +17,7 @@ switch ($_SERVER['REQUEST_METHOD'])
 		$Zaposlenici = Array();
 		while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
 		{
-			$oZaposlenik = new Zaposlenik($oRow['SifraZaposlenika'], $oRow['Ime'], $oRow['Prezime'], $oRow['Email'], $oRow['Lozinka']);
+			$oZaposlenik = new Zaposlenik($oRow['SifraZaposlenika'], $oRow['Ime'], $oRow['Prezime'], $oRow['Email'], $oRow['Admin']);
 
 			array_push($Zaposlenici, $oZaposlenik);
 		}

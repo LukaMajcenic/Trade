@@ -1,21 +1,60 @@
+<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
+    Button with data-bs-target
+</button>
+
+<div class="collapse" id="collapseFiltriranje">
+	<div>
+		<div class="d-flex justify-content-center align-items-center">
+			<input type="checkbox" class="mx-0" ng-model="filterObjectParameter.PrikaziStornirane" ng-change="filterChangeParameter()">
+			PRIKAŽI STORNIRANE
+			<input type="checkbox" ng-model="filterObjectParameter.PrikaziNesortirane" ng-change="filterChangeParameter()">
+			PRIKAŽI NESTORNIRANE
+		</div>
+
+		<div class="d-flex justify-content-center">
+			<input type="text" placeholder="Šifra računa" list="SifreRacuna" 
+			ng-model="filterObjectParameter.SifraRacunaFilter" ng-change="filterChangeParameter()">
+
+			<datalist id="SifreRacuna">
+				<option ng-repeat="Racun in ngTableParamsParameter._settings.dataset" >{{Racun.SifraRacuna}} </option>
+			</datalist>
+
+		</div>
+
+		<div class="d-flex justify-content-between">
+			<span id="IznosMinValue" class="SliderValue">{{filterObjectParameter.IznosMinValue}}</span>
+			<span>IZNOS</span>
+			<span id="IznosMaxValue" class="SliderValue">{{filterObjectParameter.IznosMaxValue}}</span>
+		</div>
+		<div id="slider-range-iznos"></div>
+
+		<div class="d-flex justify-content-between">
+			<span id="StavkeMinValue" class="SliderValue">{{filterObjectParameter.StavkeMinValue}}</span>
+			<span>BROJ STAVKI</span>
+			<span id="StavkeMaxValue" class="SliderValue">{{filterObjectParameter.StavkeMaxValue}}</span>
+		</div>
+		<div id="slider-range-stavke"></div>
+	</div>
+</div>
+
 <div class="row row-cols-1 row-cols-md-3" style="justify-content: center;">
 
 	<table ng-table="ngTableParamsParameter" class="table table-hover">
 		<tr ng-if="tableParams._settings.dataset != 0" ng-repeat="Racun in $data">
-			<td title="'Šifra računa'" filter="{ SifraRacuna: 'number'}" sortable="'SifraRacuna'">
+			<td title="'Šifra računa'" sortable="'SifraRacuna'">
 				{{Racun.SifraRacuna}}
 			</td>
-			<td title="'Šifra zaposlenika'" filter="{ SifraZaposlenika: 'number'}" sortable="'SifraZaposlenika'">
+			<td title="'Šifra zaposlenika'" sortable="'SifraZaposlenika'">
 				{{Racun.SifraZaposlenika}}
 			</td>
-			<td title="'Ukupan iznos'" filter="{ UkupanIznos: 'number'}" sortable="'UkupanIznos'">
+			<td title="'Ukupan iznos'" sortable="'UkupanIznos'">
 				{{Racun.UkupanIznos}}
 			</td>
-			<td title="'Datum'" filter="{ Datum: 'text'}" sortable="'Datum'">
+			<td title="'Datum'" sortable="'Datum'">
 				{{Racun.Datum}}
 			</td>
-			<td title="'Stavke'" filter="{ StavkeLength: 'number'}" sortable="'StavkeLength'">
-				{{Racun.StavkeLength}}
+			<td title="'Stavke'" sortable="'Stavke.length'">
+				{{Racun.Stavke.length}}
 			</td>
 			<td class="align-middle text-center">
 				<button ng-if="Racun.Storniran == 0 && isAdminParametar == true" class="customButton customButtonStorniraj"

@@ -6,15 +6,15 @@ abstract class Osoba
 	public $Ime;
 	public $Prezime;
 	public $Email;
-	public $Lozinka;
+	public $Admin;
 
-	function __construct($SifraZaposlenika, $Ime, $Prezime, $Email, $Lozinka)
+	function __construct($SifraZaposlenika, $Ime, $Prezime, $Email, $Admin)
 	{
 		$this->SifraZaposlenika = $SifraZaposlenika;
 		$this->Ime = $Ime;
 		$this->Prezime = $Prezime;
 		$this->Email = $Email;
-		$this->Lozinka = $Lozinka;
+		$this->Admin = $Admin;
 	}
 }
 
@@ -44,8 +44,9 @@ class Artikl
 	public $JedinicnaCijena;
 	public $Slika;
 	public $Kategorija;
+	public $SifraValute;
 
-	function __construct($SifraArtikla, $Naziv, $Opis, $JedinicaMjere, $JedinicnaCijena, $Slika, $Kategorija)
+	function __construct($SifraArtikla, $Naziv, $Opis, $JedinicaMjere, $JedinicnaCijena, $Slika, $Kategorija, $SifraValute)
 	{
 		$this->SifraArtikla = $SifraArtikla;
 		$this->Naziv = $Naziv;
@@ -54,6 +55,7 @@ class Artikl
 		$this->JedinicnaCijena = $JedinicnaCijena;
 		$this->Slika = $Slika;
 		$this->Kategorija = $Kategorija;
+		$this->SifraValute = $SifraValute;
 	}
 }
 
@@ -62,7 +64,7 @@ class Stavka extends Artikl
 	public $Kolicina;
 	public $UkupnaCijena;
 
-	function __construct($Kolicina, $UkupnaCijena, $SifraArtikla, $Naziv, $Opis, $JedinicaMjere, $JedinicnaCijena, $Slika, $Kategorija)
+	function __construct($Kolicina, $UkupnaCijena, $SifraArtikla, $Naziv, $Opis, $JedinicaMjere, $JedinicnaCijena, $Slika, $Kategorija, $SifraValute)
 	{
 		$this->Kolicina = $Kolicina;
 		$this->UkupnaCijena = $UkupnaCijena;
@@ -73,6 +75,7 @@ class Stavka extends Artikl
 		$this->JedinicnaCijena = $JedinicnaCijena;
 		$this->Slika = $Slika;
 		$this->Kategorija = $Kategorija;
+		$this->SifraValute = $SifraValute;
 	}
 }
 
@@ -93,6 +96,20 @@ class Racun
 		$this->Datum = $Datum;
 		$this->Storniran = $Storniran;
 		$this->Stavke = $Stavke;
+	}
+}
+
+class Valuta
+{
+	public $SifraValute;
+	public $NazivValute;
+	public $SimbolValute;
+
+	function __construct($SifraValute, $NazivValute, $SimbolValute)
+	{
+		$this->SifraValute = $SifraValute;
+		$this->NazivValute = $NazivValute;
+		$this->SimbolValute = $SimbolValute;
 	}
 }
 

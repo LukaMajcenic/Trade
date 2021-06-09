@@ -1,9 +1,72 @@
 var oModul = angular.module('oModul', ['ngRoute', 'ngTable']);
 
+oModul.run(['$rootScope', '$http', '$location', function ($rootScope, $http, $location) {
+
+	$rootScope.Logout = function()
+	{
+		$http.post("http://localhost/KV2/Logout")
+		.then(function(response) {
+			$rootScope.User = undefined;
+			$location.url("/login");
+		});
+	}
+
+	$rootScope.ConfigSettings = function()
+	{
+		return {headers:
+			{
+				'SifraZaposlenika': localStorage.getItem("SifraZaposlenika"),
+				'PageUrl': $location.$$url
+			}
+		}
+	}
+	
+	$http.get("http://localhost/KV2/Zaposlenici?SifraZaposlenika=" + localStorage.getItem("SifraZaposlenika"), $rootScope.ConfigSettings())
+	.then(function(response) {
+		$rootScope.User = response.data[0];
+	});
+
+	window.addEventListener("storage", function (event) {
+		if(event.key == 'SifraZaposlenika')
+		{
+			$rootScope.Logout();
+		}
+	}, false);
+}]);
+
+
+oModul.factory('ResponseHandler', function($rootScope, $location)
+{
+	var factory = {};
+
+	factory.Handle = function(response)
+	{
+		switch(response.status)
+		{
+			case 401:
+				console.log('redirected');
+				$rootScope.Logout();
+				break;
+				
+			case 403:
+				$location.url("/pregled_racuna");
+				break;
+		}
+		console.log(response.status);
+	}
+
+	return factory;
+});
+
 oModul.config(function($routeProvider){
-	$routeProvider.when('/naslovna', {
-		templateUrl: 'predlosci/naslovna.html',
-		controller: 'naslovnaKontroler'
+	$routeProvider.when('/', {
+		templateUrl: 'predlosci/pregled_racuna.html',
+		controller: 'pregledRacunaKontroler'
+	});
+
+	$routeProvider.when('/login', {
+		templateUrl: 'predlosci/login.html',
+		controller: 'loginKontroler'
 	});
 
 	//Pregled svih racuna
@@ -55,74 +118,109 @@ oModul.config(function($routeProvider){
 	});
 });
 
-oModul.controller('prijavaKontroler', function($scope){
-	$scope.pozdravnaPoruka = "Nalazimo se na naslovnoj stranici";
+oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window){
+
+	if($rootScope.User != undefined)
+	{
+		$window.location.href = '/KV2/#!/dodaj_racun';
+	}
+
+	$scope.User = {};
+
+	$scope.User.Email = undefined;
+	$scope.User.Lozinka = undefined;
+
+	$scope.Submit= function()
+	{
+		console.log($scope.User);
+		$http.post("http://localhost/KV2/Login", $scope.User)
+		.then(function(response) {
+			if(response.data == '')
+			{
+				console.log('Neuspjela prijava');
+			}
+			else
+			{
+				$rootScope.User = response.data;
+				localStorage.setItem("SifraZaposlenika", $rootScope.User.SifraZaposlenika);
+				$rootScope.Config = {headers:{'SifraZaposlenika': localStorage.getItem("SifraZaposlenika")}};
+				$window.location.href = '/KV2/#!/dodaj_racun';
+			}
+		});
+	}
 });
 
-oModul.controller('pregledRacunaKontroler', function($scope, $http, NgTableParams){
+oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, NgTableParams, RacuniFilterSerivice, ResponseHandler){
 
-	$scope.SetNgTable = function()
+   	$(document).on('DOMSubtreeModified', '.SliderValue', function() {
+		if($scope.FilterObject != undefined && $scope.FilterObject != undefined) $scope.FilterChange();	
+		});
+
+	$scope.FilterChange = function()
 	{
-		let SortiraniRacuni = $scope.Racuni;
-		if(!$scope.PrikaziStornirane)
-		{
-			SortiraniRacuni = SortiraniRacuni.filter(x =>
-				x.Storniran == false)
-		}
-
-		if(!$scope.PrikaziNesortirane)
-		{
-			SortiraniRacuni = SortiraniRacuni.filter(x =>
-				x.Storniran == true)
-		}
-
-		$scope.tableParams._settings.dataset = SortiraniRacuni;
+		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
 		$scope.tableParams.reload();
 	}
 
-	$http.get("http://localhost/KV2/Racuni")
+	$http.get("http://localhost/KV2/Racuni", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Racuni = response.data;
-
-		$scope.Racuni.forEach(function(value){
-			value.StavkeLength = value.Stavke.length;
-		})
 		
 		$scope.tableParams = new NgTableParams(
+		{
+			sorting: 
 			{
-				sorting: 
-				{
-					Datum: 'desc'
-				},
-			});
+				Datum: 'desc'
+			},
+		});
 
-		$scope.SetNgTable();
-	  });
+		$scope.NajveciUkupanIznos = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.UkupanIznos;}));
+		$scope.NajveciUkupanIznos = parseInt($scope.NajveciUkupanIznos) + 1;
+		$scope.NajveciBrojStavki = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.Stavke.length;}));
 
-	$scope.PrikaziStornirane = false;
-	$scope.PrikaziNesortirane = true;
+		$scope.FilterObject = {};
 
+		$scope.FilterObject.PrikaziStornirane = false;
+		$scope.FilterObject.PrikaziNesortirane = true;
+
+		$scope.FilterObject.SifraRacunaFilter = '';
+
+		$scope.FilterObject.IznosMinValue = 0;
+		$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
+
+		$scope.FilterObject.StavkeMinValue = 0;
+		$scope.FilterObject.StavkeMaxValue = $scope.NajveciBrojStavki;
+
+		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
+		$scope.tableParams.reload();
+	  }, function errorCallback(response) {
+		ResponseHandler.Handle(response);
+	  });	
 });
 
-oModul.controller('pregledJednogRacunaKontroler', function($scope, $http, $routeParams){
+oModul.controller('pregledJednogRacunaKontroler', function($rootScope, $scope, $http, $routeParams, ResponseHandler){
 
-	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + $routeParams.sifra_racuna)
+	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + $routeParams.sifra_racuna, $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Racun = response.data[0];
+	  }, function errorCallback(response) {
+		ResponseHandler.Handle(response);
 	  });
 	  
 });
 
-oModul.controller('dodajRacunKontroler', function($scope, $http, $window){
+oModul.controller('dodajRacunKontroler', function($rootScope, $scope, $http, $window, ResponseHandler){
 
 	$scope.NoviRacun = {
 		UkupanIznos: 0.00,
 		Stavke: []
 	}
 
-	$http.get("http://localhost/KV2/Artikli")
+	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Artikli = response.data;
+	  }, function errorCallback(response) {
+		ResponseHandler.Handle(response);
 	  });
 
 	$scope.DodajStavku = function(Artikl)
@@ -186,20 +284,17 @@ oModul.controller('dodajRacunKontroler', function($scope, $http, $window){
 		+ DatumRaw.getMinutes() + ':'
 		+ DatumRaw.getSeconds();
 
-		console.log(Datum);
-
 		$http.post("http://localhost/KV2/Racuni", {
-				'SifraZaposlenika': 1,
+				'SifraZaposlenika': $rootScope.User.SifraZaposlenika,
 				'UkupanIznos': $scope.NoviRacun.UkupanIznos,
 				'Datum': Datum
-		})
-		.then(function(response) {
+		}, $rootScope.ConfigSettings())
+		.then(function() {
 
-			console.log(response);
-			$http.get("http://localhost/KV2/Racuni?SifraZaposlenika=1")
+			$http.get("http://localhost/KV2/Racuni?SifraZaposlenika=" + localStorage.getItem("SifraZaposlenika"), $rootScope.ConfigSettings())
 			.then(function(response) {
 
-				console.log(response.data);
+				let BrojStavki = $scope.NoviRacun.Stavke.length;
 				$scope.NoviRacun.Stavke.forEach(function(value){
 			
 					$http.post("http://localhost/KV2/Stavke", {
@@ -207,40 +302,67 @@ oModul.controller('dodajRacunKontroler', function($scope, $http, $window){
 						'Kolicina': value.Kolicina,
 						'UkupnaCijena': value.UkupnaCijena,
 						'SifraRacuna': response.data
-					})
-					.then(function(response) {
-						  console.log(response);
-					}, function (response) {
-		
+					}, $rootScope.ConfigSettings())
+					.then(function() {
+						BrojStavki--;
+						if(BrojStavki == 0)
+						{
+							//Ako su sve stavke spremljene vracamo se na pregled racuna
+							$window.location.href = '/KV2/#!/pregled_racuna';
+						}
 					});
 		
 				})
 			});
-			$window.location.href = '/KV2/#!/pregled_racuna';
-		}, function (response) {
-
 		});
-	}
-	  
+	}	  
 });
 
-oModul.controller('stornirajRacuneKontroler', function($scope, $http, NgTableParams){
+oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http, NgTableParams, RacuniFilterSerivice, ResponseHandler){
 
-	$http.get("http://localhost/KV2/Racuni")
+	$(document).on('DOMSubtreeModified', '.SliderValue', function() {
+		if($scope.FilterObject != undefined && $scope.FilterObject != undefined) $scope.FilterChange();	
+		});
+
+	$scope.FilterChange = function()
+	{
+		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
+		$scope.tableParams.reload();
+	}
+
+	$http.get("http://localhost/KV2/Racuni", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Racuni = response.data;
-
-		$scope.Racuni.forEach(function(value){
-			value.StavkeLength = value.Stavke.length;
-		})
 		
 		$scope.tableParams = new NgTableParams(
+		{
+			sorting: 
 			{
-				sorting: 
-				{
-					Datum: 'desc'
-				},
-			}, { dataset: response.data});
+				Datum: 'desc'
+			},
+		});
+
+		$scope.NajveciUkupanIznos = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.UkupanIznos;}));
+		$scope.NajveciUkupanIznos = parseInt($scope.NajveciUkupanIznos) + 1;
+		$scope.NajveciBrojStavki = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.Stavke.length;}));
+
+		$scope.FilterObject = {};
+
+		$scope.FilterObject.PrikaziStornirane = false;
+		$scope.FilterObject.PrikaziNesortirane = true;
+
+		$scope.FilterObject.SifraRacunaFilter = '';
+
+		$scope.FilterObject.IznosMinValue = 0;
+		$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
+
+		$scope.FilterObject.StavkeMinValue = 0;
+		$scope.FilterObject.StavkeMaxValue = $scope.NajveciBrojStavki;
+
+		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
+		$scope.tableParams.reload();
+	  }, function errorCallback(response) {
+		ResponseHandler.Handle(response);
 	  });
 
 	$scope.Storniraj = function(Racun)
@@ -249,7 +371,7 @@ oModul.controller('stornirajRacuneKontroler', function($scope, $http, NgTablePar
 
 		$http.put("http://localhost/KV2/Racuni", {
 				'SifraRacuna' : Racun.SifraRacuna
-		})
+		},  $rootScope.ConfigSettings())
 		.then(function(response) {
 
 		}, function (response) {
@@ -259,45 +381,108 @@ oModul.controller('stornirajRacuneKontroler', function($scope, $http, NgTablePar
 
 });
 
-oModul.controller('stornirajJedanRacunKontroler', function($scope, $http, $routeParams){
+oModul.controller('stornirajJedanRacunKontroler', function($rootScope, $scope, $http, $routeParams, ResponseHandler){
 
-	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + $routeParams.sifra_racuna)
-	  .then(function(response) {
+	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + $routeParams.sifra_racuna, $rootScope.ConfigSettings())
+	.then(function(response) {
 	    $scope.Racun = response.data[0];
-	  });
+	}, function(response) {
+		ResponseHandler.Handle(response);
+	});
 
 	$scope.Storniraj = function(Racun)
-	  {
-		  Racun.Storniran = true;
-  
-		  $http.put("http://localhost/KV2/Racuni", {
-				  'SifraRacuna' : Racun.SifraRacuna
-		  })
-		  .then(function(response) {
-  
-		  }, function (response) {
-  
-		  });
-	  }
+	{
+		Racun.Storniran = true;
+
+		$http.put("http://localhost/KV2/Racuni", {
+				'SifraRacuna' : Racun.SifraRacuna
+		},  $rootScope.ConfigSettings())
+		.then(function(response) {
+
+		}, function() {
+
+		});
+	}
 	  
 });
 
-oModul.controller('pregledArtiklaKontroler', function($scope, $http, NgTableParams){
+oModul.controller('pregledArtiklaKontroler', function($rootScope, $scope, $http, NgTableParams, ArtikliFilterSerivice, ResponseHandler){
 
-	$http.get("http://localhost/KV2/Artikli")
+	$scope.FilterChange = function()
+	{
+		$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+		$scope.tableParams.reload();
+	}
+
+	$scope.TestFunc = function(SifraValute)
+	{
+		console.log('ds');
+		return SifraValute;
+	}
+
+/* 	$scope.ConvertValutu = function(SifraValute, Vrijednost)
+	{
+		$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${SifraValute}_HRK&compact=y`)
+		.then(function(response) {
+			console.log(response.data)
+		});
+	} */
+
+	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Artikli = response.data;
 
-		console.log($scope.Artikli);
+		$scope.Artikli.forEach(function(value){
+			if(value.SifraValute != 'HRK')
+			{
+				
+			}
+		})
 
 		$scope.tableParams = new NgTableParams(
+		{
+			sorting: 
 			{
-				sorting: 
-				{
-					SifraArtikla: 'asc'
-				},
-			}, { dataset: response.data});
-	  });
+				Naziv: 'asc'
+			},
+		});
+
+		$scope.NajvecaCijena = Math.max.apply(Math,$scope.Artikli.map(function(o){return o.JedinicnaCijena;}));
+		$scope.NajvecaCijena = parseInt($scope.NajvecaCijena) + 1;
+
+		$scope.FilterObject = {};
+
+		$scope.FilterObject.SifraArtiklaFilter = '';
+		$scope.FilterObject.NazivFilter = '';
+		$scope.FilterObject.OpisFilter = '';
+		$scope.FilterObject.JedinicaMjereFilter = '';
+		$scope.FilterObject.KategorijaFilter = '';
+		$scope.FilterObject.CijenaMinValue = 0;
+		$scope.FilterObject.CijenaMaxValue = $scope.NajvecaCijena;
+
+		$( "#slider-range-cijena" ).slider({
+			range: true,
+			min: 0,
+			max: $scope.NajvecaCijena,
+			values: [ 0, $scope.NajvecaCijena ],
+			slide: function( event, ui ) 
+			{
+				$scope.FilterObject.CijenaMinValue = ui.values[0];
+				$scope.FilterObject.CijenaMaxValue = ui.values[1];
+
+			    $scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+				$scope.tableParams.reload();
+			}
+		});
+
+		$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+		$scope.tableParams.reload();
+
+		$scope.FilterObject.UniqueJediniceMjere = [...new Set($scope.tableParams._settings.dataset.map(a => a.JedinicaMjere))];
+		$scope.FilterObject.UniqueKategorije = [...new Set($scope.tableParams._settings.dataset.map(a => a.Kategorija.Naziv))];
+	}, function errorCallback(response) {
+		ResponseHandler.Handle(response);
+	});
 
   	$scope.ShowCards = function()
   	{
@@ -310,29 +495,31 @@ oModul.controller('pregledArtiklaKontroler', function($scope, $http, NgTablePara
   		$('#pregledArtiklaTable').removeClass('displayNone');
 		$('#pregledArtiklaCards').addClass('displayNone');
   	}
-
-	$scope.propertyName = 'SifraArtikla';
-  	$scope.reverse = false;
-
-	$scope.sortBy = function(propertyName) {
-		$scope.reverse = ($scope.propertyName == propertyName) ? !$scope.reverse : false;
-		$scope.propertyName = propertyName;
-	};
 });
 
-oModul.controller('dodajArtiklKontroler', function($scope, $http, ValidationService){
+oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, ValidationService, ResponseHandler){
 
-	$http.get("http://localhost/KV2/Artikli")
+	$http.get("http://localhost/KV2/Valute", $rootScope.ConfigSettings())
 	  .then(function(response) {
-	    $scope.Artikli = response.data;
+	    $scope.Valute = response.data;
+		console.log($scope.Valute);
 	  });
 
-	$http.get("http://localhost/KV2/Kategorije")
+	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
+	  .then(function(response) {
+	    $scope.Artikli = response.data;
+	  }, function errorCallback(response) {
+		ResponseHandler.Handle(response);
+	  });
+
+	$http.get("http://localhost/KV2/Kategorije", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Kategorije = response.data;
 	    $scope.NoviArtikl.Kategorija.SifraKategorije = response.data[0].SifraKategorije;
 
 		console.log($scope.NoviArtikl);
+	  }, function errorCallback(response) {
+		ResponseHandler.Handle(response);
 	  });
 
 	$scope.NoviArtikl = {
@@ -357,12 +544,13 @@ oModul.controller('dodajArtiklKontroler', function($scope, $http, ValidationServ
 				'Opis': NoviArtikl.Opis,
 				'JedinicaMjere': NoviArtikl.JedinicaMjere,
 				'JedinicnaCijena': NoviArtikl.JedinicnaCijena,
-				'SifraKategorije': NoviArtikl.Kategorija.SifraKategorije
-			})
+				'SifraKategorije': NoviArtikl.Kategorija.SifraKategorije,
+				'SifraValute': NoviArtikl.SifraValute
+			}, $rootScope.ConfigSettings())
 			  .then(function(response) {
 			  	$('.customForm')[0].reset();
-			  }, function (response) {
-
+			  }, function errorCallback(response) {
+				ResponseHandler.Handle(response);
 			  });
 		}
 		else
@@ -373,25 +561,67 @@ oModul.controller('dodajArtiklKontroler', function($scope, $http, ValidationServ
 
 });
  
-oModul.controller('urediArtikleKontroler', function($scope, $http, ValidationService, NgTableParams){
+oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, ValidationService, NgTableParams, ArtikliFilterSerivice, ResponseHandler){
 
-	$http.get("http://localhost/KV2/Artikli")
+	$scope.FilterChange = function()
+	{
+		$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+		$scope.tableParams.reload();
+	}
+
+	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Artikli = response.data;
 
 		$scope.tableParams = new NgTableParams(
+		{
+			sorting: 
 			{
-				sorting: 
-				{
-					SifraArtikla: 'asc'
-				},
-			}, { dataset: response.data});
+				SifraArtikla: 'asc'
+			},
+		});
+
+		$scope.NajvecaCijena = Math.max.apply(Math,$scope.Artikli.map(function(o){return o.JedinicnaCijena;}));
+		$scope.NajvecaCijena = parseInt($scope.NajvecaCijena) + 1;
+	
+		$scope.FilterObject = {};
+	
+		$scope.FilterObject.SifraArtiklaFilter = '';
+		$scope.FilterObject.NazivFilter = '';
+		$scope.FilterObject.OpisFilter = '';
+		$scope.FilterObject.JedinicaMjereFilter = '';
+		$scope.FilterObject.KategorijaFilter = '';
+		$scope.FilterObject.CijenaMinValue = 0;
+		$scope.FilterObject.CijenaMaxValue = $scope.NajvecaCijena;
+	
+		$( "#slider-range-cijena" ).slider({
+			range: true,
+			min: 0,
+			max: $scope.NajvecaCijena,
+			values: [ 0, $scope.NajvecaCijena ],
+			slide: function( event, ui ) 
+			{
+				$scope.FilterObject.CijenaMinValue = ui.values[0];
+				$scope.FilterObject.CijenaMaxValue = ui.values[1];
+	
+				$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+				$scope.tableParams.reload();
+			}
+		});
+	
+		$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+		$scope.tableParams.reload();
+	
+		$scope.FilterObject.UniqueJediniceMjere = [...new Set($scope.tableParams._settings.dataset.map(a => a.JedinicaMjere))];
+		$scope.FilterObject.UniqueKategorije = [...new Set($scope.tableParams._settings.dataset.map(a => a.Kategorija.Naziv))];
+	  }, function errorCallback(response) {
+		ResponseHandler.Handle(response);
 	  });
 
 	$http.get("http://localhost/KV2/Kategorije")
 	  .then(function(response) {
 	    $scope.Kategorije = response.data;
-	  });
+	});
 
 	$scope.Open = function(Artikl)
 	{
@@ -458,7 +688,6 @@ oModul.controller('urediArtikleKontroler', function($scope, $http, ValidationSer
 	}
 });
 
-
 oModul.directive('artiklForma', function(){
    return {
       restrict:'E',
@@ -467,6 +696,7 @@ oModul.directive('artiklForma', function(){
 		metodaParametar: '=',
 		artiklParametar: '=',
 		kategorijeParametar: '=',
+		valuteParametar: '=',
 		submitParametar: '&',
 		odustaniParametar: '&',
 		changeParametar: '&'
@@ -481,6 +711,8 @@ oModul.directive('racuniTable', function(){
 	   scope: {
 		isAdminParametar: '=',
 		ngTableParamsParameter: '=',
+		filterObjectParameter: '=',
+		filterChangeParameter: '&',
 		stornirajParametar: '&'
       },
 	};
@@ -494,6 +726,18 @@ oModul.directive('racunPrikaz', function(){
 		isAdminParametar: '=',
 		racunParametar: '=',
 		stornirajParametar: '&'
+      },
+	};
+});
+
+oModul.directive('artiklFiltriranje', function(){
+	return {
+	   restrict:'E',
+	   templateUrl:'direktive/artikli_filtriranje',
+	   scope: {
+		tableParamsParametar: '=',
+		filterObjectParametar: '=',
+		filterChangeParametar: '&'
       },
 	};
 });
@@ -521,3 +765,128 @@ oModul.factory('ValidationService', function()
 
 	return factory;
 });
+
+oModul.factory('RacuniFilterSerivice', function()
+{
+	var factory = {};
+
+	factory.SetNgTable = function(scope)
+	{
+		$( "#slider-range-iznos" ).slider({
+			range: true,
+			min: 0.00,
+			max: scope.NajveciUkupanIznos,
+			values: [ 0, scope.NajveciUkupanIznos ],
+			slide: function( event, ui ) 
+			{
+				scope.FilterObject.IznosMinValue = ui.values[0];
+				scope.FilterObject.IznosMaxValue = ui.values[1];
+
+				$('#IznosMinValue').text(ui.values[0]);
+				$('#IznosMaxValue').text(ui.values[1]);
+
+			    factory.SetNgTable(scope);
+			}
+		});
+
+		$( "#slider-range-stavke" ).slider({
+			range: true,
+			min: 0,
+			max: scope.NajveciBrojStavki,
+			values: [ 0, scope.NajveciBrojStavki ],
+			slide: function( event, ui ) 
+			{
+				scope.FilterObject.StavkeMinValue = ui.values[0];
+				scope.FilterObject.StavkeMaxValue = ui.values[1];
+
+				$('#StavkeMinValue').text(ui.values[0]);
+				$('#StavkeMaxValue').text(ui.values[1]);
+
+			  	factory.SetNgTable(scope);
+			}
+		});
+
+ 		let SortiraniRacuni = scope.Racuni;
+ 		if(!scope.FilterObject.PrikaziStornirane)
+		{
+			SortiraniRacuni = SortiraniRacuni.filter(x =>
+				x.Storniran == false)
+		}
+
+		if(!scope.FilterObject.PrikaziNesortirane)
+		{
+			SortiraniRacuni = SortiraniRacuni.filter(x =>
+				x.Storniran == true)
+		}
+
+		if(scope.FilterObject.SifraRacunaFilter != '')
+		{
+			SortiraniRacuni = SortiraniRacuni.filter(x =>
+				x.SifraRacuna.toString().includes(scope.FilterObject.SifraRacunaFilter.toString()))
+		}
+
+		SortiraniRacuni = SortiraniRacuni.filter(x =>
+			x.UkupanIznos >= scope.FilterObject.IznosMinValue &&
+			x.UkupanIznos <= scope.FilterObject.IznosMaxValue)
+
+		SortiraniRacuni = SortiraniRacuni.filter(x =>
+			x.Stavke.length >= scope.FilterObject.StavkeMinValue &&
+			x.Stavke.length <= scope.FilterObject.StavkeMaxValue)
+
+		scope.tableParams._settings.dataset = SortiraniRacuni;
+
+		return scope.tableParams;
+	}
+
+	return factory;
+})
+
+oModul.factory('ArtikliFilterSerivice', function()
+{
+	var factory = {};
+
+	factory.SetNgTable = function(scope)
+	{
+ 		let SortiraniArtikli = scope.Artikli;
+
+		if(scope.FilterObject.SifraArtiklaFilter != '')
+		{
+			SortiraniArtikli = SortiraniArtikli.filter(x =>
+				x.SifraArtikla.toString().includes(scope.FilterObject.SifraArtiklaFilter.toString()))
+		}
+
+		if(scope.FilterObject.NazivFilter != '')
+		{
+			SortiraniArtikli = SortiraniArtikli.filter(x =>
+				x.Naziv.toLowerCase().includes(scope.FilterObject.NazivFilter.toLowerCase()))
+		}
+
+		if(scope.FilterObject.OpisFilter != '')
+		{
+			SortiraniArtikli = SortiraniArtikli.filter(x =>
+				x.Opis.toLowerCase().includes(scope.FilterObject.OpisFilter.toLowerCase()))
+		}
+
+		if(scope.FilterObject.JedinicaMjereFilter != '')
+		{
+			SortiraniArtikli = SortiraniArtikli.filter(x =>
+				x.JedinicaMjere == scope.FilterObject.JedinicaMjereFilter)
+		}
+
+		SortiraniArtikli = SortiraniArtikli.filter(x =>
+			x.JedinicnaCijena >= scope.FilterObject.CijenaMinValue &&
+			x.JedinicnaCijena <= scope.FilterObject.CijenaMaxValue);
+
+		if(scope.FilterObject.KategorijaFilter != '')
+		{
+			SortiraniArtikli = SortiraniArtikli.filter(x =>
+				x.Kategorija.Naziv == scope.FilterObject.KategorijaFilter)
+		}
+
+		scope.tableParams._settings.dataset = SortiraniArtikli;
+
+		return scope.tableParams;
+	}
+
+	return factory;
+})

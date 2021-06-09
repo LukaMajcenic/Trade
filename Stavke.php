@@ -5,38 +5,6 @@ include 'connection.php';
 
 switch ($_SERVER['REQUEST_METHOD']) 
 {
-	case 'GET':
-
-		$sQuery = "SELECT * FROM stavke INNER JOIN artikli ON stavke.SifraArtikla = artikli.SifraArtikla";
-		if(isset($_GET['SifraStavke']))
-		{
-			$sQuery .= " WHERE SifraStavke = '". $_GET['SifraStavke'] ."'";
-		}
-		else if(isset($_GET['SifraRacuna']))
-		{
-			$sQuery .= " WHERE SifraRacuna = '". $_GET['SifraRacuna'] ."'";
-		}
-
-		$oRecord = $oConnection->query($sQuery);
-		$Stavke = Array();
-		while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
-		{
-			$sQueryKategorije = "SELECT * FROM kategorije WHERE SifraKategorije = '". $oRow['SifraKategorije'] ."'";
-			$oRecordKategorija = $oConnection->query($sQueryKategorije);
-
-			while($oRowKategorija = $oRecordKategorija->fetch(PDO::FETCH_BOTH))
-			{
-				$oKategorija = new Kategorija($oRowKategorija['SifraKategorije'], $oRowKategorija['NazivKategorije']);
-			}
-
-			$oStavka = new Stavka($oRow['Kolicina'], $oRow['UkupnaCijena'], $oRow['SifraArtikla'], $oRow['Naziv'], $oRow['Opis'], $oRow['JedinicaMjere'], $oRow['JedinicnaCijena'], $oRow['Slika'], $oKategorija);
-
-			array_push($Stavke, $oStavka);
-		}
-		header('Content-Type: application/json');
-		echo json_encode($Stavke);
-		break;
-
 	case 'POST':
 
 		$_POST = json_decode(file_get_contents('php://input'), true);

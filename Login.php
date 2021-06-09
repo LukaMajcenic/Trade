@@ -1,0 +1,29 @@
+<?php
+
+include 'classes.php';
+include 'connection.php';
+
+$_POST = json_decode(file_get_contents('php://input'), true);
+
+if(isset($_POST['Email']) && isset($_POST['Lozinka']))
+{
+    $sQuery = "SELECT * FROM zaposlenici";
+    $sQuery .= " WHERE Email = '". $_POST['Email'] ."'";
+
+    $oRecord = $oConnection->query($sQuery);
+    while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+    {
+        if($oRow['Lozinka'] == $_POST['Lozinka'])
+        {
+            $_SESSION['SifraZaposlenika'] = $oRow['SifraZaposlenika'];
+            echo json_encode(new Zaposlenik($oRow['SifraZaposlenika'], $oRow['Ime'], $oRow['Prezime'], $oRow['Email'], (bool)$oRow['Admin']));
+        }
+    }
+}
+else
+{
+    http_response_code(400);
+    echo 'Nisu svi parametri postavljeni!';
+}
+
+?>
