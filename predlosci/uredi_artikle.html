@@ -22,7 +22,15 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 				{{Artikl.JedinicaMjere}}
 			</td>
 			<td title="'Jedinična cijena'" sortable="'JedinicnaCijena'">
-				{{Artikl.JedinicnaCijena}}
+				<span ng-if="Artikl.SifraValute == 'HRK'" class="text-nowrap">
+					{{Artikl.JedinicnaCijena}} HRK
+				</span>
+				<span ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap">
+					{{Artikl.JedinicnaCijenaConverted}} HRK
+				</span>
+				<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap" style="opacity: 0.4;">
+					{{Artikl.JedinicnaCijena}} {{Artikl.SifraValute}}
+				</small>
 			</td>
 			<td title="'Kategorija'" sortable="'Kategorija.Naziv'">
 				{{Artikl.Kategorija.Naziv}}
@@ -41,7 +49,7 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 		<tr ng-repeat-end class="noHoverEffect">
 			<td class="collapse collapse{{Artikl.SifraArtikla}}" id="collapse{{Artikl.SifraArtikla}}" scope="col" colspan="9">
 				<div class="collapse collapse{{Artikl.SifraArtikla}}" id="collapse{{Artikl.SifraArtikla}}">
-					<artikl-forma metoda-parametar="'PUT'" artikl-parametar="Artikl" kategorije-parametar="Kategorije" 
+					<artikl-forma metoda-parametar="'PUT'" artikl-parametar="Artikl" kategorije-parametar="Kategorije" valute-parametar="Valute"
 					submit-parametar="Submit(Artikl)" odustani-parametar="Odustani(Artikl)" change-parametar="Change(Artikl)"></artikl-forma>
 				</div>
 			</td>

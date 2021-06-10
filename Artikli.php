@@ -67,14 +67,15 @@ switch ($_SERVER['REQUEST_METHOD'])
 
 		$_PUT = json_decode(file_get_contents('php://input'), true);
 		
-		if(isset($_PUT['SifraArtikla']) && isset($_PUT['Naziv']) && isset($_PUT['Opis']) && isset($_PUT['JedinicaMjere']) && isset($_PUT['JedinicnaCijena']) && isset($_PUT['SifraKategorije']))
+		if(isset($_PUT['SifraArtikla']) && isset($_PUT['Naziv']) && isset($_PUT['Opis']) && isset($_PUT['JedinicaMjere']) && isset($_PUT['JedinicnaCijena']) && isset($_PUT['SifraKategorije']) && isset($_PUT['SifraValute']))
 		{
 			$sQuery = "UPDATE artikli SET 
 				Naziv = :Naziv, 
 				Opis = :Opis, 
 				JedinicaMjere = :JedinicaMjere, 
 				JedinicnaCijena = :JedinicnaCijena,
-				SifraKategorije = :SifraKategorije
+				SifraKategorije = :SifraKategorije,
+				SifraValute = :SifraValute
 				WHERE SifraArtikla = :SifraArtikla";
 			$oStatement = $oConnection->prepare($sQuery);
 			$oData = array(
@@ -83,7 +84,8 @@ switch ($_SERVER['REQUEST_METHOD'])
 				'Opis' => $_PUT['Opis'],
 				'JedinicaMjere' => $_PUT['JedinicaMjere'],
 				'JedinicnaCijena' => $_PUT['JedinicnaCijena'],
-				'SifraKategorije' => $_PUT['SifraKategorije']
+				'SifraKategorije' => $_PUT['SifraKategorije'],
+				'SifraValute' => $_PUT['SifraValute']
 			);
 
 			if($oStatement->execute($oData))

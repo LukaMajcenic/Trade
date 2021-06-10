@@ -27,7 +27,16 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 			<p class="card-text">{{Artikl.Opis}}</p>
 		</div>
 		<div class="card-footer">
-		    {{Artikl.JedinicnaCijena}} kn <span class="badge">{{Artikl.JedinicaMjere}}</span>
+			<span ng-if="Artikl.SifraValute == 'HRK'" class="text-nowrap">
+				{{Artikl.JedinicnaCijena}} HRK
+			</span>
+			<span ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap">
+				{{Artikl.JedinicnaCijenaConverted}} HRK
+			</span>
+			<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap" style="opacity: 0.4;">
+				{{Artikl.JedinicnaCijena}} {{Artikl.SifraValute}}
+			</small>
+			<span class="badge">{{Artikl.JedinicaMjere}}</span>
 		</div>
 	</div>
 </div>
@@ -49,10 +58,15 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 				{{Artikl.JedinicaMjere}}
 			</td>
 			<td title="'Jedinična cijena'" sortable="'JedinicnaCijena'">
-				<span ng-if="Artikl.SifraValute == 'HRK'">{{Artikl.JedinicnaCijena}} HRK</span>
-				<span ng-if="Artikl.SifraValute != 'HRK'">{{TestFunc(HRK)}} HRK
-					<small style="opacity: 0.4;">{{Artikl.JedinicnaCijena}} {{Artikl.SifraValute}}</small>
+				<span ng-if="Artikl.SifraValute == 'HRK'" class="text-nowrap">
+					{{Artikl.JedinicnaCijena}} HRK
 				</span>
+				<span ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap">
+					{{Artikl.JedinicnaCijenaConverted}} HRK
+				</span>
+				<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap" style="opacity: 0.6;">
+					{{Artikl.JedinicnaCijena}} {{Artikl.SifraValute}}
+				</small>
 			</td>
 			<td title="'Kategorija'" sortable="'Kategorija.Naziv'">
 				{{Artikl.Kategorija.Naziv}}

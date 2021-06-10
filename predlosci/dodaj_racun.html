@@ -2,7 +2,7 @@
 	<h4>DODAJ RAČUN</h4>
 </div>
 
-<div class="container receiptContainer">
+<div class="container receiptContainer font-monospace">
     <div class="d-flex justify-content-center">
         <h3>NAZIV TRGOVINE</h3>
     </div>
@@ -71,7 +71,17 @@
                 </td>
             </tr>
             <tr>
-                <td class="text-end" colspan="7"><br><h5><b>UKUPAN IZNOS</b> {{NoviRacun.UkupanIznos}}</h5></td>
+                <td class="text-end" colspan="7">
+                    <br>
+                    <h5>
+                        <b>UKUPAN IZNOS</b> {{NoviRacun.UkupanIznos}}
+<!--                         <input type="text" class="form-control" ng-model="NoviRacun.SifraValute" ng-change="ValutaChange()"
+                        list="Valute" autocomplete="off"> -->
+                        <datalist id="Valute">
+                            <option ng-repeat="Valuta in Valute" value="{{Valuta.SifraValute}}">{{Valuta.NazivValute}}</option>
+                        </datalist>
+                    </h5>
+                </td>
             </tr>
         </tfoot>
     </table>

@@ -213,12 +213,40 @@ oModul.controller('dodajRacunKontroler', function($rootScope, $scope, $http, $wi
 
 	$scope.NoviRacun = {
 		UkupanIznos: 0.00,
-		Stavke: []
+		Stavke: [],
+		SifraValute: 'HRK'
 	}
+
+	$scope.ValutaChange = function()
+	{
+		console.log($scope.NoviRacun.SifraValute);
+		$scope.Artikli.forEach(function(value){
+			$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${value.SifraValute}_${$scope.NoviRacun.SifraValute}&compact=y`)
+			.then(function(response) {
+				value.JedinicnaCijena = (response.data[value.SifraValute + $scope.NoviRacun.SifraValute].val * value.JedinicnaCijena).toFixed(2);;
+			});
+		})
+	}
+
+	$http.get("http://localhost/KV2/Valute", $rootScope.ConfigSettings())
+	  .then(function(response) {
+	    $scope.Valute = response.data;
+	  });
 
 	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Artikli = response.data;
+
+		$scope.Artikli.forEach(function(value){
+			if(value.SifraValute != 'HRK')
+			{
+				$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${value.SifraValute}_HRK&compact=y`)
+				.then(function(response) {
+					value.JedinicnaCijena = (response.data[value.SifraValute + '_HRK'].val * value.JedinicnaCijena).toFixed(2);;
+				});
+			}
+		})
+		
 	  }, function errorCallback(response) {
 		ResponseHandler.Handle(response);
 	  });
@@ -414,20 +442,6 @@ oModul.controller('pregledArtiklaKontroler', function($rootScope, $scope, $http,
 		$scope.tableParams.reload();
 	}
 
-	$scope.TestFunc = function(SifraValute)
-	{
-		console.log('ds');
-		return SifraValute;
-	}
-
-/* 	$scope.ConvertValutu = function(SifraValute, Vrijednost)
-	{
-		$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${SifraValute}_HRK&compact=y`)
-		.then(function(response) {
-			console.log(response.data)
-		});
-	} */
-
 	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Artikli = response.data;
@@ -435,7 +449,10 @@ oModul.controller('pregledArtiklaKontroler', function($rootScope, $scope, $http,
 		$scope.Artikli.forEach(function(value){
 			if(value.SifraValute != 'HRK')
 			{
-				
+				$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${value.SifraValute}_HRK&compact=y`)
+				.then(function(response) {
+					value.JedinicnaCijenaConverted = (response.data[value.SifraValute + '_HRK'].val * value.JedinicnaCijena).toFixed(2);;
+				});
 			}
 		})
 
@@ -530,7 +547,8 @@ oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, Va
 		Kategorija: {
 			SifraKategorije: null,
 			Naziv: ""
-		}
+		},
+		SifraValute: 'HRK'
 	}
 
 	$scope.Submit = function(NoviArtikl)
@@ -563,6 +581,12 @@ oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, Va
  
 oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, ValidationService, NgTableParams, ArtikliFilterSerivice, ResponseHandler){
 
+	$http.get("http://localhost/KV2/Valute", $rootScope.ConfigSettings())
+	  .then(function(response) {
+	    $scope.Valute = response.data;
+		console.log($scope.Valute);
+	  });
+
 	$scope.FilterChange = function()
 	{
 		$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
@@ -572,6 +596,16 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, V
 	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Artikli = response.data;
+
+		$scope.Artikli.forEach(function(value){
+			if(value.SifraValute != 'HRK')
+			{
+				$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${value.SifraValute}_HRK&compact=y`)
+				.then(function(response) {
+					value.JedinicnaCijenaConverted = (response.data[value.SifraValute + '_HRK'].val * value.JedinicnaCijena).toFixed(2);;
+				});
+			}
+		})
 
 		$scope.tableParams = new NgTableParams(
 		{
@@ -618,7 +652,7 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, V
 		ResponseHandler.Handle(response);
 	  });
 
-	$http.get("http://localhost/KV2/Kategorije")
+	$http.get("http://localhost/KV2/Kategorije", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Kategorije = response.data;
 	});
@@ -631,7 +665,7 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, V
 
 	$scope.Odustani = function(Artikl)
 	{
-		$http.get("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla)
+		$http.get("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla, $rootScope.ConfigSettings())
 		.then(function(response) {
 			const index = $scope.Artikli.findIndex(x => x.SifraArtikla == Artikl.SifraArtikla);
 			$scope.Artikli[index] = response.data[0];
@@ -663,10 +697,17 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, V
 				'Opis': Artikl.Opis,
 				'JedinicaMjere': Artikl.JedinicaMjere,
 				'JedinicnaCijena': Artikl.JedinicnaCijena,
-				'SifraKategorije': Artikl.Kategorija.SifraKategorije
-			})
-			  .then(function(response) {
-
+				'SifraKategorije': Artikl.Kategorija.SifraKategorije,
+				'SifraValute': Artikl.SifraValute
+			}, $rootScope.ConfigSettings())
+			  .then(function() {
+				if(Artikl.SifraValute != 'HRK')
+				{
+					$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${Artikl.SifraValute}_HRK&compact=y`)
+					.then(function(response) {
+						Artikl.JedinicnaCijenaConverted = (response.data[Artikl.SifraValute + '_HRK'].val * Artikl.JedinicnaCijena).toFixed(2);;
+					});
+				}
 			  }, function (response) {
 
 			  });
@@ -679,8 +720,8 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, V
 
 	$scope.Delete = function(Artikl)
 	{
-		$http.delete("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla)
-		.then(function(response) {
+		$http.delete("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla, $rootScope.ConfigSettings())
+		.then(function() {
 			let index = $scope.Artikli.indexOf(Artikl);
 			$scope.Artikli.splice(index, 1);
 			$scope.tableParams.reload();

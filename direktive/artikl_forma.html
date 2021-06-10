@@ -24,13 +24,13 @@
 			<input type="number" min="0" step="0.01" class="form-control" id="floatingJedinicnaCijena" placeholder=" " ng-model="artiklParametar.JedinicnaCijena">
 			<label for="floatingJedinicnaCijena">Jedinična cijena</label>
 		</div>
-		<div class="form-floating mt-3" style="width: 40%; margin-left: 2px;">
-			<input type="text" class="form-control" id="floatingValuta" placeholder=" " 
-			ng-model="artiklParametar.SifraValute" list="Valute">
+		<div class="form-floating mt-3 ms-1 w-25">
+			<select class="form-control" id="floatingValuta" ng-model="artiklParametar.SifraValute">
+				<option ng-repeat="Valuta in valuteParametar" value="{{Valuta.SifraValute}}">
+					{{Valuta.SifraValute}} - {{Valuta.NazivValute}}
+				</option>
+			</select>
 			<label for="floatingValuta">Valuta</label>
-			<datalist id="Valute">
-				<option ng-repeat="Valuta in valuteParametar" value="{{Valuta.SifraValute}}">{{Valuta.NazivValute}}</option>
-			</datalist>
 		</div>
 	</div>
 
