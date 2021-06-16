@@ -7,14 +7,20 @@ abstract class Osoba
 	public $Prezime;
 	public $Email;
 	public $Admin;
+	public $Deaktiviran;
+	public $Tema;
+	public $Valuta;
 
-	function __construct($SifraZaposlenika, $Ime, $Prezime, $Email, $Admin)
+	function __construct($SifraZaposlenika, $Ime, $Prezime, $Email, $Admin, $Deaktiviran, $Tema, $Valuta)
 	{
 		$this->SifraZaposlenika = $SifraZaposlenika;
 		$this->Ime = $Ime;
 		$this->Prezime = $Prezime;
 		$this->Email = $Email;
 		$this->Admin = $Admin;
+		$this->Deaktiviran = $Deaktiviran;
+		$this->Tema = $Tema;
+		$this->Valuta = $Valuta;
 	}
 }
 
@@ -86,15 +92,17 @@ class Racun
 	public $UkupanIznos;
 	public $Datum;
 	public $Storniran;
+	public $SifraValute;
 	public $Stavke;
 
-	function __construct($SifraRacuna, $SifraZaposlenika, $UkupanIznos, $Datum, $Storniran, $Stavke)
+	function __construct($SifraRacuna, $SifraZaposlenika, $UkupanIznos, $Datum, $Storniran, $SifraValute, $Stavke)
 	{
 		$this->SifraRacuna = $SifraRacuna;
 		$this->SifraZaposlenika = $SifraZaposlenika;
 		$this->UkupanIznos = $UkupanIznos;
 		$this->Datum = $Datum;
 		$this->Storniran = $Storniran;
+		$this->SifraValute = $SifraValute;
 		$this->Stavke = $Stavke;
 	}
 }

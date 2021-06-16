@@ -73,6 +73,7 @@ a:hover
 	box-shadow: inset 0px 10px 20px -15px #000000;
     padding: 0px 8px 25px 8px;
     position: absolute !important;
+    margin-top: -24px;
 }
 
 .container 
@@ -101,4 +102,50 @@ a:hover
 .noviRacunContainer::after
 {
     background-size: 12px 32px;
+}
+
+.userInfoDiv
+{
+    background-color: var(--backgroundDarker2);
+    color: var(--foreground);
+    font-family: var(--bs-font-monospace);
+    display: flex;
+    justify-content: space-between;
+    height: 24px;
+}
+
+.adminStar
+{
+    position: absolute;
+    left: 0px;
+    bottom: -5px;
+    font-size: 10px;
+    color: goldenrod;
+}
+
+.AdminTrue
+{
+    color: goldenrod;
+}
+
+.AdminTrue:hover
+{
+    color: var(--backgroundDarker1);
+    cursor: pointer;
+}
+
+.AdminFalse
+{
+    color: var(--backgroundDarker2);
+}
+
+.AdminFalse:hover
+{
+    color: goldenrod;
+    cursor: pointer;
+}
+
+.opacityLow
+{
+    opacity: 0.5;
 }

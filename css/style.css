@@ -230,6 +230,7 @@ body::-webkit-scrollbar-thumb
     opacity: 0.3;
     transform: rotate(16deg);
     border: 5px solid red;
+	font-family: system-ui;
 }
 
 .storniranRibbonTable
@@ -263,6 +264,7 @@ tbody, td, tfoot, th, thead, tr
 .table tr
 {
 	border-bottom: 1px solid var(--backgroundDarker1);
+	vertical-align: middle;
 }
 
 .table .form-control 
@@ -374,4 +376,11 @@ tbody, td, tfoot, th, thead, tr
 .additionalOptionsDiv
 {
 	background-color: var(--backgroundDarker1);
+}
+
+.originalCurrencyLabel
+{
+    background-color: rgb(50 205 50 / 25%);
+    padding: 1px 4px 1px 4px;
+	font-size: small;
 }

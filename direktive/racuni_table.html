@@ -47,8 +47,16 @@
 			<td title="'Šifra zaposlenika'" sortable="'SifraZaposlenika'">
 				{{Racun.SifraZaposlenika}}
 			</td>
-			<td title="'Ukupan iznos'" sortable="'UkupanIznos'">
-				{{Racun.UkupanIznos}}
+			<td title="'Ukupan iznos'" sortable="'UkupanIznosConverted'">
+				<span ng-if="Racun.SifraValute == 'HRK'" class="text-nowrap">
+					{{Racun.UkupanIznos}} HRK
+				</span>
+				<span ng-if="Racun.SifraValute != 'HRK'" class="text-nowrap">
+					{{Racun.UkupanIznosConverted}} HRK
+				</span>
+				<small ng-if="Racun.SifraValute != 'HRK'" class="text-nowrap originalCurrencyLabel">
+					{{Racun.UkupanIznos}} {{Racun.SifraValute}}
+				</small>
 			</td>
 			<td title="'Datum'" sortable="'Datum'">
 				{{Racun.Datum}}

@@ -17,7 +17,8 @@ switch ($_SERVER['REQUEST_METHOD'])
 		$Zaposlenici = Array();
 		while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
 		{
-			$oZaposlenik = new Zaposlenik($oRow['SifraZaposlenika'], $oRow['Ime'], $oRow['Prezime'], $oRow['Email'], $oRow['Admin']);
+			$oZaposlenik = new Zaposlenik($oRow['SifraZaposlenika'], $oRow['Ime'], $oRow['Prezime'], $oRow['Email'], 
+			$oRow['AdminX'], $oRow['Deaktiviran'], $oRow['Tema'], $oRow['Valuta']);
 
 			array_push($Zaposlenici, $oZaposlenik);
 		}
@@ -57,23 +58,28 @@ switch ($_SERVER['REQUEST_METHOD'])
 
 	case 'PUT':
 
-		parse_str(file_get_contents('php://input'), $_PUT);
+		$_PUT = json_decode(file_get_contents('php://input'), true);
 		
-		if(isset($_PUT['SifraZaposlenika']) && isset($_PUT['Ime']) && isset($_PUT['Prezime']) && isset($_PUT['Email']) && isset($_PUT['Lozinka']))
+		if(isset($_PUT['SifraZaposlenika']) && isset($_PUT['Ime']) && isset($_PUT['Prezime']) && isset($_PUT['Tema'])
+		&& isset($_PUT['Admin']) && isset($_PUT['Deaktiviran']) && isset($_PUT['Valuta']))
 		{
 			$sQuery = "UPDATE zaposlenici SET 
 				Ime = :Ime, 
 				Prezime = :Prezime, 
-				Email = :Email, 
-				Lozinka = :Lozinka 
+				Tema = :Tema,
+				AdminX = :AdminX,
+				Deaktiviran = :Deaktiviran,
+				Valuta = :Valuta
 				WHERE SifraZaposlenika = :SifraZaposlenika";
 			$oStatement = $oConnection->prepare($sQuery);
 			$oData = array(
 				'SifraZaposlenika' => $_PUT['SifraZaposlenika'],
 				'Ime' => $_PUT['Ime'],
 				'Prezime' => $_PUT['Prezime'],
-				'Email' => $_PUT['Email'],
-				'Lozinka' => $_PUT['Lozinka']
+				'Tema' => $_PUT['Tema'],
+				'AdminX' => $_PUT['Admin'],
+				'Deaktiviran' => $_PUT['Deaktiviran'],
+				'Valuta' => $_PUT['Valuta']
 			);
 
 			if($oStatement->execute($oData))
@@ -85,32 +91,6 @@ switch ($_SERVER['REQUEST_METHOD'])
 				http_response_code(400);
 				echo "Upit nije izvršen!";
 			}
-		}
-		else
-		{
-			http_response_code(400);
-			echo 'Nisu svi parametri postavljeni!';
-		}
-		break;
-
-	case 'DELETE':
-		
-		if(isset($_GET['SifraZaposlenika']))
-		{
-			$sQuery = "DELETE FROM zaposlenici WHERE SifraZaposlenika = :SifraZaposlenika";
-			$oStatement = $oConnection->prepare($sQuery);
-			$oData = array('SifraZaposlenika' => $_GET['SifraZaposlenika']);
-
-			if($oStatement->execute($oData))
-			{
-				echo "Zaposlenik '" . $_GET['SifraZaposlenika'] . "' izbrisan";
-			}
-			else
-			{
-				http_response_code(400);
-				echo "Upit nije izvršen!";
-			}
-			break;
 		}
 		else
 		{

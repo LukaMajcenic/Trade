@@ -9,15 +9,13 @@
 		<label for="floatingOpis">Opis</label>
 	</div>
 
-	<div class="d-flex">
-		<div class="form-floating mt-3" style="flex: 1;">
-		<select class="form-select" id="floatingJedinicaMjere" aria-label=" " ng-model="artiklParametar.JedinicaMjere">
-			<option value="Komad">Komad</option>
-			<option value="Kg">Kg</option>
-		</select>
-		<label for="floatingJedinicaMjere">Jedinica mjere</label>
-		</div>
-	</div>		
+	<div class="form-floating mt-3" style="flex: 1;">
+	<select class="form-select" id="floatingJedinicaMjere" aria-label=" " ng-model="artiklParametar.JedinicaMjere">
+		<option value="Komad">Komad</option>
+		<option value="Kg">Kg</option>
+	</select>
+	<label for="floatingJedinicaMjere">Jedinica mjere</label>
+	</div>	
 
 	<div class="d-flex">
 		<div class="form-floating mt-3" style="flex: 1">
@@ -50,7 +48,5 @@
 	
 	<button type="reset" class="customButtonInverted ms-auto">OČISTI INPUTE<i class="fas fa-ban"></i></button>
 	</div>
-
-	<div ng-repeat="Valuta in Valute">{{Valute.length}}</div>
 	
 </form>

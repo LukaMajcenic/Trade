@@ -15,7 +15,7 @@ $configuration = new Configuration();
 try
 {
 	$oConnection = new PDO("mysql:host=$configuration->host; dbname=$configuration->dbName; charset=utf8", $configuration->username, $configuration->password);
-	$AdminOnlyPages = array("/storniraj_racune", "/dodaj_artikl", "/uredi_artikle");
+	$AdminOnlyPages = array("/storniraj_racune", "/dodaj_artikl", "/uredi_artikle", '/pregled_zaposlenika', '/uredi_zaposlenike');
 
     if($_SERVER['REQUEST_URI'] != '/KV2/Login')
     {
@@ -28,14 +28,13 @@ try
         }
         else if(in_array($_SERVER['HTTP_PAGEURL'], $AdminOnlyPages))
         {
-            $sQuery = "SELECT Admin FROM zaposlenici";
+            $sQuery = "SELECT AdminX FROM zaposlenici";
             $sQuery .= " WHERE SifraZaposlenika = '". $_SERVER['HTTP_SIFRAZAPOSLENIKA'] ."'";
 
             $oRecord = $oConnection->query($sQuery);
-            $Zaposlenici = Array();
             while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
             {
-                if($oRow['Admin'] == 0)
+                if($oRow['AdminX'] == 0)
                 {
                     http_response_code(403);
                 }

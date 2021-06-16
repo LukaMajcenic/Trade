@@ -33,10 +33,9 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 			<span ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap">
 				{{Artikl.JedinicnaCijenaConverted}} HRK
 			</span>
-			<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap" style="opacity: 0.4;">
+			<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap originalCurrencyLabel">
 				{{Artikl.JedinicnaCijena}} {{Artikl.SifraValute}}
 			</small>
-			<span class="badge">{{Artikl.JedinicaMjere}}</span>
 		</div>
 	</div>
 </div>
@@ -45,6 +44,9 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 	
 	<table ng-table="tableParams" class="table">
 		<tr ng-repeat="Artikl in $data">
+			<td class="text-center align-middle">
+				<img src="{{Artikl.Slika}}" style="max-width: 60px;">
+			</td>
 			<td title="'Šifra artikla'" sortable="'SifraArtikla'">
 				{{Artikl.SifraArtikla}}
 			</td>
@@ -57,14 +59,14 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 			<td title="'Jedinica mjere'" sortable="'JedinicaMjere'">
 				{{Artikl.JedinicaMjere}}
 			</td>
-			<td title="'Jedinična cijena'" sortable="'JedinicnaCijena'">
+			<td title="'Jedinična cijena'" sortable="'JedinicnaCijenaConverted'">
 				<span ng-if="Artikl.SifraValute == 'HRK'" class="text-nowrap">
 					{{Artikl.JedinicnaCijena}} HRK
 				</span>
 				<span ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap">
 					{{Artikl.JedinicnaCijenaConverted}} HRK
 				</span>
-				<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap" style="opacity: 0.6;">
+				<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap originalCurrencyLabel">
 					{{Artikl.JedinicnaCijena}} {{Artikl.SifraValute}}
 				</small>
 			</td>

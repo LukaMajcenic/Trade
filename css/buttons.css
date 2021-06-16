@@ -31,6 +31,12 @@
 	background-color: transparent;
 }
 
+.customIconButton a
+{
+	color: var(--foreground);
+    text-decoration: none;
+}
+
 .customIconButtonRed i, .customIconButtonRed i:hover
 {
 	color: var(--customRed);

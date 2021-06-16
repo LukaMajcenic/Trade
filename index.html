@@ -25,8 +25,10 @@
 <body>
 
 	<nav class="navbar navbar-expand-md navbar-dark p-0 shadow-sm" ng-if="$root.User != undefined">
-	  <div class="container-fluid">
-	    <a class="navbar-brand" href="#">Navbar</a>
+	  <div class="container-fluid pe-0">
+	    <a class="navbar-brand" href="#">
+			<logo for-nav-menu="true"></logo>
+		</a>
 	    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 	      <span class="navbar-toggler-icon"></span>
 	    </button>
@@ -36,8 +38,8 @@
 	        <li class="nav-item">
 	          <a class="nav-link active" aria-current="page" href="#!/naslovna"><i class="fas fa-home"></i></a>
 	        </li>
-
-	      	<li class="nav-item dropdown">
+			
+			<li class="nav-item dropdown">
 	          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 	            RAČUNI
 	          </a>
@@ -63,40 +65,32 @@
 
 	        <li class="nav-item dropdown">
 	          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-	            ŠIFRARNIK
-	          </a>
-	          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-	            <li><a class="dropdown-item" href="#">Pregled kategorija<i class="far fa-eye"></i></a></li>
-	            <li><hr class="dropdown-divider"></li>
-	            <li><a class="dropdown-item" href="#">Dodaj kategoriju<i class="fas fa-plus-circle"></i></a></li>
-	            <li><a class="dropdown-item" href="#">Uredi kategoriju<i class="fas fa-cog"></i></a></li>
-	          </ul>
-	        </li>
-
-	        <li class="nav-item dropdown">
-	          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 	            ZAPOSLENICI
 	          </a>
 	          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-	            <li><a class="dropdown-item" href="#">Pregled<i class="far fa-eye"></i></a></li>
+	            <li><a class="dropdown-item" href="#!/pregled_zaposlenika">Pregled<i class="far fa-eye"></i></a></li>
 	            <li><hr class="dropdown-divider"></li>
-	            <li><a class="dropdown-item" href="#">Dodaj<i class="fas fa-plus-circle"></i></a></li>
-	            <li><a class="dropdown-item" href="#">Uredi<i class="fas fa-cog"></i></a></li>
+	            <li><a class="dropdown-item" href="#!/uredi_zaposlenike">Uredi<i class="fas fa-cog"></i></a></li>
 	          </ul>
 	        </li>
 
 	      </ul>
 
-	      <form class="d-flex">
+	      <div class="d-flex">
 
       		<ul class="navbar-nav me-auto mb-2 mb-md-0 w-100">
-
       			<li class="nav-item dropdown">
-		          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-		            PROFIL
+		          <a class="nav-link dropdown-toggle text-uppercase" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" 
+				  aria-expanded="false">				  	
+					<span class="position-relative">
+						<img src="https://techcrunch.com/wp-content/uploads/2015/09/11667534_10102203860243201_2713296330820668368_n.jpg?w=528"
+						style="border-radius: 50%; height: 25px;">
+						<i class="fas fa-star adminStar" ng-if="$root.User.Admin == 1"></i>
+					</span>
+						PROFIL					
 		          </a>
 		          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-		          	<li><a class="dropdown-item" href="#">Uredi<i class="fas fa-user-cog"></i></a></li>
+		          	<li><a class="dropdown-item" href="#!/uredi_profil">Uredi<i class="fas fa-user-cog"></i></a></li>
 		            <li><hr class="dropdown-divider"></li>
 		            <li><a class="dropdown-item" ng-click="$root.Logout()">Odjava<i class="fas fa-sign-in-alt"></i></a></li>  
 		          </ul>
@@ -107,14 +101,25 @@
 		        </li>
 	    	</ul>
 
-    	  </form>
+    	  </div>
 
 	    </div>
 	  </div>
 	</nav>
 
-	<div class="container noviRacunContainer" ng-if="$root.LoggedIn">
-    	Novi račun <i class="fas fa-receipt"></i> <i class="fas fa-plus"></i>
+	<div class="userInfoDiv px-2" ng-if="$root.User != undefined">
+		<ol class="breadcrumb">
+			<li ng-repeat="page in $root.BreadcrumbArray" ng-if="!$last" class="breadcrumb-item">
+				<a href="{{page.Link}}">{{page.Naziv}}</a>
+			</li>
+			<li class="breadcrumb-item active" aria-current="page">{{$root.BreadcrumbArray[$root.BreadcrumbArray.length-1].Naziv}}</li>
+		</ol>
+		  
+		{{$root.User.Ime}} {{$root.User.Prezime}} | #{{$root.User.SifraZaposlenika}}
+	</div>
+
+	<div class="container noviRacunContainer" ng-if="$root.User != undefined">
+    	<a href="#!/dodaj_racun" class="text-reset text-decoration-none">Novi račun <i class="fas fa-receipt"></i> <i class="fas fa-plus"></i></a>
 	</div>
 
 	<div class="container-fluid px-5" style="margin-top: 60px">

@@ -46,7 +46,8 @@ switch ($_SERVER['REQUEST_METHOD'])
 			while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
 			{
 				$Stavke = DohvatiStavke($oConnection, $oRow['SifraRacuna']);
-				$oRacun = new Racun((int)$oRow['SifraRacuna'], (int)$oRow['SifraZaposlenika'], (float)$oRow['UkupanIznos'], $oRow['Datum'], $oRow['Storniran'], $Stavke);
+				$oRacun = new Racun((int)$oRow['SifraRacuna'], (int)$oRow['SifraZaposlenika'], (float)$oRow['UkupanIznos'], 
+				$oRow['Datum'], $oRow['Storniran'], $oRow['SifraValute'], $Stavke);
 
 				array_push($Racuni, $oRacun);
 			}
@@ -74,12 +75,14 @@ switch ($_SERVER['REQUEST_METHOD'])
 		
 		if(isset($_POST['SifraZaposlenika']) && isset($_POST['UkupanIznos']) && isset($_POST['Datum']))
 		{
-			$sQuery = "INSERT INTO racuni (SifraZaposlenika, UkupanIznos, Datum) VALUES (:SifraZaposlenika, :UkupanIznos, :Datum)";
+			$sQuery = "INSERT INTO racuni (SifraZaposlenika, UkupanIznos, Datum, SifraValute) 
+			VALUES (:SifraZaposlenika, :UkupanIznos, :Datum, :SifraValute)";
 			$oStatement = $oConnection->prepare($sQuery);
 			$oData = array(
 				'SifraZaposlenika' => $_POST['SifraZaposlenika'],
 				'UkupanIznos' => $_POST['UkupanIznos'],
-				'Datum' => $_POST['Datum']
+				'Datum' => $_POST['Datum'],
+				'SifraValute' => $_POST['SifraValute']
 			);
 
 			if($oStatement->execute($oData))

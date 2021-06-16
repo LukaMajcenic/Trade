@@ -21,14 +21,14 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 			<td title="'Jedinica mjere'" sortable="'JedinicaMjere'">
 				{{Artikl.JedinicaMjere}}
 			</td>
-			<td title="'Jedinična cijena'" sortable="'JedinicnaCijena'">
+			<td title="'Jedinična cijena'" sortable="'JedinicnaCijenaConverted'">
 				<span ng-if="Artikl.SifraValute == 'HRK'" class="text-nowrap">
 					{{Artikl.JedinicnaCijena}} HRK
 				</span>
 				<span ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap">
 					{{Artikl.JedinicnaCijenaConverted}} HRK
 				</span>
-				<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap" style="opacity: 0.4;">
+				<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap originalCurrencyLabel">
 					{{Artikl.JedinicnaCijena}} {{Artikl.SifraValute}}
 				</small>
 			</td>

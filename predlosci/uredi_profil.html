@@ -1,0 +1,40 @@
+<div class="d-flex customFlex">
+	<h4>UREDI PROFIL</h4>
+</div>
+
+<form class="customForm" ng-submit="Submit()">
+
+    <div class="form-floating mt-3">
+		<input type="text" class="form-control" id="floatingIme" placeholder=" " ng-model="$root.User.Ime" autocomplete="off">
+		<label for="floatingIme">Ime</label>
+	</div>
+
+    <div class="form-floating mt-3">
+		<input type="text" class="form-control" id="floatingPrezime" placeholder=" " ng-model="$root.User.Prezime" autocomplete="off">
+		<label for="floatingPrezime">Prezime</label>
+	</div>
+
+    <div class="form-floating mt-3" style="flex: 1;">
+        <select class="form-select" id="floatingValuta" aria-label=" " ng-model="$root.User.Valuta">
+            <option ng-repeat="Valuta in Valute" value="{{Valuta.SifraValute}}">
+                {{Valuta.SifraValute}} - {{Valuta.NazivValute}}
+            </option>
+        </select>
+        <label for="floatingValuta">Zadana valuta</label>
+    </div>
+
+    <div class="form-floating mt-3" style="flex: 1;">
+        <select class="form-select" id="floatingTema" aria-label=" " ng-model="$root.User.Tema">
+            <option value="L">Svijetla</option>
+            <option value="D">Tamna</option>
+        </select>
+        <label for="floatingTema">Zadana tema</label>
+    </div>
+
+    <div class="d-flex mt-3">
+        <button type="submit" class="customButton">SPREMI PROMJENE<i class="fas fa-check-circle"></i></button>
+        
+        <button type="reset" class="customButtonInverted ms-auto">OČISTI INPUTE<i class="fas fa-ban"></i></button>
+    </div>
+
+</form>

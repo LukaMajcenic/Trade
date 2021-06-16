@@ -1,13 +1,15 @@
 var oModul = angular.module('oModul', ['ngRoute', 'ngTable']);
 
-oModul.run(['$rootScope', '$http', '$location', function ($rootScope, $http, $location) {
+oModul.run(['$rootScope', '$http', '$location', 'GeneralServices', function ($rootScope, $http, $location) {
 
 	$rootScope.Logout = function()
 	{
 		$http.post("http://localhost/KV2/Logout")
-		.then(function(response) {
+		.then(function() {
 			$rootScope.User = undefined;
 			$location.url("/login");
+			localStorage.setItem("Tema", 'L');
+			$rootScope.PostaviTemu();
 		});
 	}
 
@@ -20,10 +22,51 @@ oModul.run(['$rootScope', '$http', '$location', function ($rootScope, $http, $lo
 			}
 		}
 	}
+
+	$rootScope.BreadcrumbArray = [{Naziv : 'Home', Link: '#!/dodaj_racun'}]
+	$rootScope.SetBreadcrumb = function(Nazivi = null, Linkovi = null)
+	{
+		$rootScope.BreadcrumbArray = [];
+		$rootScope.BreadcrumbArray = [{Naziv : 'Home', Link: '#!/dodaj_racun'}]
+
+		if(Nazivi != null && Linkovi != null)
+		{
+			for(let i = 0; i < Nazivi.length; i++)
+			{
+				$rootScope.BreadcrumbArray.push({Naziv: Nazivi[i], Link: Linkovi[i]});
+			}
+		}
+	}
+
+	$rootScope.PostaviTemu = function()
+	{
+		if(localStorage.getItem("Tema") == 'D')
+		{
+			document.documentElement.style.setProperty('--background', Gray);
+			document.documentElement.style.setProperty('--backgroundDarker1', GrayDarker1);
+			document.documentElement.style.setProperty('--backgroundDarker2', GrayDarker2);
+
+			document.documentElement.style.setProperty('--foreground', White);
+			document.documentElement.style.setProperty('--foreground', WhiteDarker1);
+		}
+		else
+		{
+			document.documentElement.style.setProperty('--background', White);
+			document.documentElement.style.setProperty('--backgroundDarker1', WhiteDarker1);
+			document.documentElement.style.setProperty('--backgroundDarker2', WhiteDarker2);
+
+			document.documentElement.style.setProperty('--foreground', Gray);
+			document.documentElement.style.setProperty('--foregroundDarker1', GrayDarker1);
+		}
+	}
 	
+	$rootScope.PostaviTemu();
 	$http.get("http://localhost/KV2/Zaposlenici?SifraZaposlenika=" + localStorage.getItem("SifraZaposlenika"), $rootScope.ConfigSettings())
 	.then(function(response) {
 		$rootScope.User = response.data[0];
+
+		localStorage.setItem("Tema", $rootScope.User.Tema);
+		$rootScope.PostaviTemu();
 	});
 
 	window.addEventListener("storage", function (event) {
@@ -32,8 +75,8 @@ oModul.run(['$rootScope', '$http', '$location', function ($rootScope, $http, $lo
 			$rootScope.Logout();
 		}
 	}, false);
-}]);
 
+}]);
 
 oModul.factory('ResponseHandler', function($rootScope, $location)
 {
@@ -116,6 +159,24 @@ oModul.config(function($routeProvider){
 		templateUrl: 'predlosci/uredi_artikle.html',
 		controller: 'urediArtikleKontroler'
 	});
+
+	//Pregled zaposlenika
+	$routeProvider.when('/pregled_zaposlenika', {
+		templateUrl: 'predlosci/pregled_zaposlenika.html',
+		controller: 'pregledZaposlenikaKontroler'
+	});
+
+	//Uredi zaposlenike
+	$routeProvider.when('/uredi_zaposlenike', {
+		templateUrl: 'predlosci/uredi_zaposlenike.html',
+		controller: 'urediZaposlenikeKontroler'
+	});
+
+	//Uredivanje profila
+	$routeProvider.when('/uredi_profil', {
+		templateUrl: 'predlosci/uredi_profil.html',
+		controller: 'urediProfilKontroler'
+	});
 });
 
 oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window){
@@ -142,6 +203,8 @@ oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window)
 			else
 			{
 				$rootScope.User = response.data;
+				localStorage.setItem("Tema", $rootScope.User.Tema);
+				$rootScope.PostaviTemu();
 				localStorage.setItem("SifraZaposlenika", $rootScope.User.SifraZaposlenika);
 				$rootScope.Config = {headers:{'SifraZaposlenika': localStorage.getItem("SifraZaposlenika")}};
 				$window.location.href = '/KV2/#!/dodaj_racun';
@@ -150,7 +213,9 @@ oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window)
 	}
 });
 
-oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, NgTableParams, RacuniFilterSerivice, ResponseHandler){
+oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, NgTableParams, GeneralServices, RacuniFilterSerivice, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Pregled računa'], ['#!/pregled_racuna']);
 
    	$(document).on('DOMSubtreeModified', '.SliderValue', function() {
 		if($scope.FilterObject != undefined && $scope.FilterObject != undefined) $scope.FilterChange();	
@@ -162,54 +227,65 @@ oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, 
 		$scope.tableParams.reload();
 	}
 
-	$http.get("http://localhost/KV2/Racuni", $rootScope.ConfigSettings())
-	  .then(function(response) {
-	    $scope.Racuni = response.data;
-		
-		$scope.tableParams = new NgTableParams(
-		{
-			sorting: 
+	GeneralServices.GetExchangeRates().then(function(ExchangeRates){
+
+		$http.get("http://localhost/KV2/Racuni", $rootScope.ConfigSettings())
+		.then(function(response) {
+			$scope.Racuni = response.data;
+
+			$scope.Racuni.forEach(function(value){
+				value.UkupanIznosConverted = parseFloat((ExchangeRates[value.SifraValute] * value.UkupanIznos).toFixed(2));
+			})
+			
+			$scope.tableParams = new NgTableParams(
 			{
-				Datum: 'desc'
-			},
-		});
+				sorting: 
+				{
+					Datum: 'desc'
+				},
+			});
 
-		$scope.NajveciUkupanIznos = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.UkupanIznos;}));
-		$scope.NajveciUkupanIznos = parseInt($scope.NajveciUkupanIznos) + 1;
-		$scope.NajveciBrojStavki = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.Stavke.length;}));
+			$scope.NajveciUkupanIznos = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.UkupanIznosConverted;}));
+			$scope.NajveciUkupanIznos = parseInt($scope.NajveciUkupanIznos) + 1;
+			$scope.NajveciBrojStavki = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.Stavke.length;}));
 
-		$scope.FilterObject = {};
+			$scope.FilterObject = {};
 
-		$scope.FilterObject.PrikaziStornirane = false;
-		$scope.FilterObject.PrikaziNesortirane = true;
+			$scope.FilterObject.PrikaziStornirane = false;
+			$scope.FilterObject.PrikaziNesortirane = true;
 
-		$scope.FilterObject.SifraRacunaFilter = '';
+			$scope.FilterObject.SifraRacunaFilter = '';
 
-		$scope.FilterObject.IznosMinValue = 0;
-		$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
+			$scope.FilterObject.IznosMinValue = 0;
+			$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
 
-		$scope.FilterObject.StavkeMinValue = 0;
-		$scope.FilterObject.StavkeMaxValue = $scope.NajveciBrojStavki;
+			$scope.FilterObject.StavkeMinValue = 0;
+			$scope.FilterObject.StavkeMaxValue = $scope.NajveciBrojStavki;
 
-		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
-		$scope.tableParams.reload();
-	  }, function errorCallback(response) {
-		ResponseHandler.Handle(response);
-	  });	
+			$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
+			$scope.tableParams.reload();
+		}, function errorCallback(response) {
+			ResponseHandler.Handle(response);
+		});	
+	})
 });
 
 oModul.controller('pregledJednogRacunaKontroler', function($rootScope, $scope, $http, $routeParams, ResponseHandler){
 
-	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + $routeParams.sifra_racuna, $rootScope.ConfigSettings())
+	let SifraRacuna = $routeParams.sifra_racuna;
+	$rootScope.SetBreadcrumb(['Pregled računa', 'Račun ' + SifraRacuna], ['#!/pregled_racuna', '#!/pregled_racuna/' + SifraRacuna]);
+
+	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + SifraRacuna, $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Racun = response.data[0];
 	  }, function errorCallback(response) {
 		ResponseHandler.Handle(response);
 	  });
-	  
 });
 
-oModul.controller('dodajRacunKontroler', function($rootScope, $scope, $http, $window, ResponseHandler){
+oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope, $http, $window, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Dodaj račun'], ['#!/dodaj_racun']);
 
 	$scope.NoviRacun = {
 		UkupanIznos: 0.00,
@@ -217,14 +293,36 @@ oModul.controller('dodajRacunKontroler', function($rootScope, $scope, $http, $wi
 		SifraValute: 'HRK'
 	}
 
+	var tick = function() 
+	{
+		let DatumRaw = new Date();
+		$scope.Datum = DatumRaw.getFullYear() + '-'
+		+ (DatumRaw.getMonth()+1) + '-' 
+		+ DatumRaw.getDate() + ' '
+		+ DatumRaw.getHours() + ':'
+		+ DatumRaw.getMinutes() + ':'
+		+ DatumRaw.getSeconds();
+	}
+	tick();
+	$interval(tick, 1000);
+
 	$scope.ValutaChange = function()
 	{
-		console.log($scope.NoviRacun.SifraValute);
 		$scope.Artikli.forEach(function(value){
-			$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${value.SifraValute}_${$scope.NoviRacun.SifraValute}&compact=y`)
-			.then(function(response) {
-				value.JedinicnaCijena = (response.data[value.SifraValute + $scope.NoviRacun.SifraValute].val * value.JedinicnaCijena).toFixed(2);;
-			});
+			$http.get(`https://api.exchangerate.host/convert?from=${value.SifraValute}&to=${$scope.NoviRacun.SifraValute}`)
+			.then(function(response){
+				value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
+			})
+		})
+
+		$scope.NoviRacun.Stavke.forEach(function(value){
+			$http.get(`https://api.exchangerate.host/convert?from=${value.SifraValute}&to=${$scope.NoviRacun.SifraValute}`)
+			.then(function(response){
+				value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
+				$scope.PromijeniUkupnuCijenu(value);
+
+				console.log(value);
+			})
 		})
 	}
 
@@ -240,10 +338,14 @@ oModul.controller('dodajRacunKontroler', function($rootScope, $scope, $http, $wi
 		$scope.Artikli.forEach(function(value){
 			if(value.SifraValute != 'HRK')
 			{
-				$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${value.SifraValute}_HRK&compact=y`)
-				.then(function(response) {
-					value.JedinicnaCijena = (response.data[value.SifraValute + '_HRK'].val * value.JedinicnaCijena).toFixed(2);;
-				});
+				$http.get(`https://api.exchangerate.host/convert?from=${value.SifraValute}&to=${$scope.NoviRacun.SifraValute}`)
+				.then(function(response){
+					value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
+				})
+			}
+			else
+			{
+				value.JedinicnaCijenaConverted = value.JedinicnaCijena;
 			}
 		})
 		
@@ -255,14 +357,16 @@ oModul.controller('dodajRacunKontroler', function($rootScope, $scope, $http, $wi
 	{
 		let novaStavka = {
 			Kolicina: 1,
-			UkupnaCijena: 1*parseFloat(Artikl.JedinicnaCijena),
+			UkupnaCijena: Artikl.JedinicnaCijenaConverted,
 			SifraArtikla: Artikl.SifraArtikla,
 			Naziv: Artikl.Naziv,
 			Opis:  Artikl.Opis,
 			JedinicaMjere: Artikl.JedinicaMjere,
-			JedinicnaCijena: parseFloat(Artikl.JedinicnaCijena),
+			JedinicnaCijena: Artikl.JedinicnaCijena,
 			Slika: Artikl.Slika,
-			Kategorija: Artikl.Kategorija
+			Kategorija: Artikl.Kategorija,
+			SifraValute: Artikl.SifraValute,
+			JedinicnaCijenaConverted: Artikl.JedinicnaCijenaConverted
 		}
 		console.log(novaStavka);
 
@@ -275,13 +379,14 @@ oModul.controller('dodajRacunKontroler', function($rootScope, $scope, $http, $wi
 	{
 		if(Stavka != null)
 		{
-			Stavka.UkupnaCijena = Stavka.Kolicina * Stavka.JedinicnaCijena;
+			Stavka.UkupnaCijena = parseFloat((Stavka.Kolicina * Stavka.JedinicnaCijenaConverted).toFixed(2));
 		}
 
 		$scope.NoviRacun.UkupanIznos = 0.00;
 		$scope.NoviRacun.Stavke.forEach(function(value){
 			$scope.NoviRacun.UkupanIznos += value.UkupnaCijena;
 		})
+		$scope.NoviRacun.UkupanIznos = parseFloat($scope.NoviRacun.UkupanIznos).toFixed(2);
 	}
 
 	$scope.ProvjeraArtikla = function(Artikl)
@@ -315,7 +420,8 @@ oModul.controller('dodajRacunKontroler', function($rootScope, $scope, $http, $wi
 		$http.post("http://localhost/KV2/Racuni", {
 				'SifraZaposlenika': $rootScope.User.SifraZaposlenika,
 				'UkupanIznos': $scope.NoviRacun.UkupanIznos,
-				'Datum': Datum
+				'Datum': Datum,
+				'SifraValute': $scope.NoviRacun.SifraValute
 		}, $rootScope.ConfigSettings())
 		.then(function() {
 
@@ -346,7 +452,9 @@ oModul.controller('dodajRacunKontroler', function($rootScope, $scope, $http, $wi
 	}	  
 });
 
-oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http, NgTableParams, RacuniFilterSerivice, ResponseHandler){
+oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http, NgTableParams, GeneralServices, RacuniFilterSerivice, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Storniraj račune'], ['#!/storniraj_racune']);
 
 	$(document).on('DOMSubtreeModified', '.SliderValue', function() {
 		if($scope.FilterObject != undefined && $scope.FilterObject != undefined) $scope.FilterChange();	
@@ -358,40 +466,49 @@ oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http
 		$scope.tableParams.reload();
 	}
 
-	$http.get("http://localhost/KV2/Racuni", $rootScope.ConfigSettings())
-	  .then(function(response) {
-	    $scope.Racuni = response.data;
-		
-		$scope.tableParams = new NgTableParams(
-		{
-			sorting: 
+	GeneralServices.GetExchangeRates().then(function(ExchangeRates){
+
+		$http.get("http://localhost/KV2/Racuni", $rootScope.ConfigSettings())
+		.then(function(response) {
+			$scope.Racuni = response.data;	
+
+			$scope.Racuni.forEach(function(value)
 			{
-				Datum: 'desc'
-			},
+				value.UkupanIznosConverted = parseFloat((ExchangeRates[value.SifraValute] * value.UkupanIznos).toFixed(2));
+			})		
+			
+			$scope.tableParams = new NgTableParams(
+			{
+				sorting: 
+				{
+					Datum: 'desc'
+				},
+			});
+
+			$scope.NajveciUkupanIznos = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.UkupanIznos;}));
+			$scope.NajveciUkupanIznos = parseInt($scope.NajveciUkupanIznos) + 1;
+			$scope.NajveciBrojStavki = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.Stavke.length;}));
+
+			$scope.FilterObject = {};
+
+			$scope.FilterObject.PrikaziStornirane = false;
+			$scope.FilterObject.PrikaziNesortirane = true;
+
+			$scope.FilterObject.SifraRacunaFilter = '';
+
+			$scope.FilterObject.IznosMinValue = 0;
+			$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
+
+			$scope.FilterObject.StavkeMinValue = 0;
+			$scope.FilterObject.StavkeMaxValue = $scope.NajveciBrojStavki;
+
+			$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
+			$scope.tableParams.reload();
+		}, function errorCallback(response) {
+			ResponseHandler.Handle(response);
 		});
 
-		$scope.NajveciUkupanIznos = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.UkupanIznos;}));
-		$scope.NajveciUkupanIznos = parseInt($scope.NajveciUkupanIznos) + 1;
-		$scope.NajveciBrojStavki = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.Stavke.length;}));
-
-		$scope.FilterObject = {};
-
-		$scope.FilterObject.PrikaziStornirane = false;
-		$scope.FilterObject.PrikaziNesortirane = true;
-
-		$scope.FilterObject.SifraRacunaFilter = '';
-
-		$scope.FilterObject.IznosMinValue = 0;
-		$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
-
-		$scope.FilterObject.StavkeMinValue = 0;
-		$scope.FilterObject.StavkeMaxValue = $scope.NajveciBrojStavki;
-
-		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
-		$scope.tableParams.reload();
-	  }, function errorCallback(response) {
-		ResponseHandler.Handle(response);
-	  });
+	})
 
 	$scope.Storniraj = function(Racun)
 	{
@@ -411,7 +528,10 @@ oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http
 
 oModul.controller('stornirajJedanRacunKontroler', function($rootScope, $scope, $http, $routeParams, ResponseHandler){
 
-	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + $routeParams.sifra_racuna, $rootScope.ConfigSettings())
+	let SifraRacuna = $routeParams.sifra_racuna;
+	$rootScope.SetBreadcrumb(['Storniraj račune', 'Račun ' + SifraRacuna], ['#!/storniraj_racune', '#!/storniraj_racune/' + SifraRacuna]);
+
+	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + SifraRacuna, $rootScope.ConfigSettings())
 	.then(function(response) {
 	    $scope.Racun = response.data[0];
 	}, function(response) {
@@ -434,7 +554,9 @@ oModul.controller('stornirajJedanRacunKontroler', function($rootScope, $scope, $
 	  
 });
 
-oModul.controller('pregledArtiklaKontroler', function($rootScope, $scope, $http, NgTableParams, ArtikliFilterSerivice, ResponseHandler){
+oModul.controller('pregledArtiklaKontroler', function($rootScope, $scope, $http, NgTableParams, GeneralServices, ArtikliFilterSerivice, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Pregled artikla'], ['#!/pregled_artikla']);
 
 	$scope.FilterChange = function()
 	{
@@ -442,63 +564,61 @@ oModul.controller('pregledArtiklaKontroler', function($rootScope, $scope, $http,
 		$scope.tableParams.reload();
 	}
 
-	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
-	  .then(function(response) {
-	    $scope.Artikli = response.data;
+	GeneralServices.GetExchangeRates().then(function(response){
+		let ExchangeRates = response;
 
-		$scope.Artikli.forEach(function(value){
-			if(value.SifraValute != 'HRK')
-			{
-				$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${value.SifraValute}_HRK&compact=y`)
-				.then(function(response) {
-					value.JedinicnaCijenaConverted = (response.data[value.SifraValute + '_HRK'].val * value.JedinicnaCijena).toFixed(2);;
-				});
-			}
-		})
+		$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
+		.then(function(response) {
+			$scope.Artikli = response.data;
 
-		$scope.tableParams = new NgTableParams(
-		{
-			sorting: 
+			$scope.Artikli.forEach(function(value)
 			{
-				Naziv: 'asc'
-			},
+				value.JedinicnaCijenaConverted =  parseFloat((ExchangeRates[value.SifraValute] * value.JedinicnaCijena).toFixed(2));
+			})
+
+			$scope.tableParams = new NgTableParams(
+			{
+				sorting: 
+				{
+					Naziv: 'asc'
+				},
+			});
+			$scope.NajvecaCijena = Math.max.apply(Math,$scope.Artikli.map(function(o){return o.JedinicnaCijenaConverted;}));
+			$scope.NajvecaCijena = parseInt($scope.NajvecaCijena) + 1;
+
+			$scope.FilterObject = {};
+
+			$scope.FilterObject.SifraArtiklaFilter = '';
+			$scope.FilterObject.NazivFilter = '';
+			$scope.FilterObject.OpisFilter = '';
+			$scope.FilterObject.JedinicaMjereFilter = '';
+			$scope.FilterObject.KategorijaFilter = '';
+			$scope.FilterObject.CijenaMinValue = 0;
+			$scope.FilterObject.CijenaMaxValue = $scope.NajvecaCijena;
+
+			$( "#slider-range-cijena" ).slider({
+				range: true,
+				min: 0,
+				max: $scope.NajvecaCijena,
+				values: [ 0, $scope.NajvecaCijena ],
+				slide: function( event, ui ) 
+				{
+					$scope.FilterObject.CijenaMinValue = ui.values[0];
+					$scope.FilterObject.CijenaMaxValue = ui.values[1];
+
+					$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+					$scope.tableParams.reload();
+				}
+			});
+
+			$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+			$scope.tableParams.reload();
+
+			$scope.FilterObject.UniqueJediniceMjere = [...new Set($scope.tableParams._settings.dataset.map(a => a.JedinicaMjere))];
+			$scope.FilterObject.UniqueKategorije = [...new Set($scope.tableParams._settings.dataset.map(a => a.Kategorija.Naziv))];
+		}, function errorCallback(response) {
+			ResponseHandler.Handle(response);
 		});
-
-		$scope.NajvecaCijena = Math.max.apply(Math,$scope.Artikli.map(function(o){return o.JedinicnaCijena;}));
-		$scope.NajvecaCijena = parseInt($scope.NajvecaCijena) + 1;
-
-		$scope.FilterObject = {};
-
-		$scope.FilterObject.SifraArtiklaFilter = '';
-		$scope.FilterObject.NazivFilter = '';
-		$scope.FilterObject.OpisFilter = '';
-		$scope.FilterObject.JedinicaMjereFilter = '';
-		$scope.FilterObject.KategorijaFilter = '';
-		$scope.FilterObject.CijenaMinValue = 0;
-		$scope.FilterObject.CijenaMaxValue = $scope.NajvecaCijena;
-
-		$( "#slider-range-cijena" ).slider({
-			range: true,
-			min: 0,
-			max: $scope.NajvecaCijena,
-			values: [ 0, $scope.NajvecaCijena ],
-			slide: function( event, ui ) 
-			{
-				$scope.FilterObject.CijenaMinValue = ui.values[0];
-				$scope.FilterObject.CijenaMaxValue = ui.values[1];
-
-			    $scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
-				$scope.tableParams.reload();
-			}
-		});
-
-		$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
-		$scope.tableParams.reload();
-
-		$scope.FilterObject.UniqueJediniceMjere = [...new Set($scope.tableParams._settings.dataset.map(a => a.JedinicaMjere))];
-		$scope.FilterObject.UniqueKategorije = [...new Set($scope.tableParams._settings.dataset.map(a => a.Kategorija.Naziv))];
-	}, function errorCallback(response) {
-		ResponseHandler.Handle(response);
 	});
 
   	$scope.ShowCards = function()
@@ -514,7 +634,9 @@ oModul.controller('pregledArtiklaKontroler', function($rootScope, $scope, $http,
   	}
 });
 
-oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, ValidationService, ResponseHandler){
+oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, GeneralServices, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Dodaj artikl'], ['#!/dodaj_artikl']);
 
 	$http.get("http://localhost/KV2/Valute", $rootScope.ConfigSettings())
 	  .then(function(response) {
@@ -553,7 +675,7 @@ oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, Va
 
 	$scope.Submit = function(NoviArtikl)
 	{
-		if(ValidationService.ValidateForm('.customForm'))
+		if(GeneralServices.ValidateForm('.customForm'))
 		{
 			console.log($scope.NoviArtikl);
 			$http.post("http://localhost/KV2/Artikli", {
@@ -579,12 +701,13 @@ oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, Va
 
 });
  
-oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, ValidationService, NgTableParams, ArtikliFilterSerivice, ResponseHandler){
+oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, GeneralServices, NgTableParams, ArtikliFilterSerivice, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Uredi artikle'], ['#!/uredi_artikle']);
 
 	$http.get("http://localhost/KV2/Valute", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Valute = response.data;
-		console.log($scope.Valute);
 	  });
 
 	$scope.FilterChange = function()
@@ -593,64 +716,63 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, V
 		$scope.tableParams.reload();
 	}
 
-	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
-	  .then(function(response) {
-	    $scope.Artikli = response.data;
+	GeneralServices.GetExchangeRates().then(function(response){
+		$scope.ExchangeRates = response;
 
-		$scope.Artikli.forEach(function(value){
-			if(value.SifraValute != 'HRK')
-			{
-				$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${value.SifraValute}_HRK&compact=y`)
-				.then(function(response) {
-					value.JedinicnaCijenaConverted = (response.data[value.SifraValute + '_HRK'].val * value.JedinicnaCijena).toFixed(2);;
-				});
-			}
-		})
+		$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
+		.then(function(response) {
+			$scope.Artikli = response.data;
 
-		$scope.tableParams = new NgTableParams(
-		{
-			sorting: 
+			$scope.Artikli.forEach(function(value)
 			{
-				SifraArtikla: 'asc'
-			},
+				value.JedinicnaCijenaConverted =  parseFloat(($scope.ExchangeRates[value.SifraValute] * value.JedinicnaCijena).toFixed(2));
+			})
+
+			$scope.tableParams = new NgTableParams(
+			{
+				sorting: 
+				{
+					SifraArtikla: 'asc'
+				},
+			});
+
+			$scope.NajvecaCijena = Math.max.apply(Math,$scope.Artikli.map(function(o){return o.JedinicnaCijenaConverted;}));
+			$scope.NajvecaCijena = parseInt($scope.NajvecaCijena) + 1;
+		
+			$scope.FilterObject = {};
+		
+			$scope.FilterObject.SifraArtiklaFilter = '';
+			$scope.FilterObject.NazivFilter = '';
+			$scope.FilterObject.OpisFilter = '';
+			$scope.FilterObject.JedinicaMjereFilter = '';
+			$scope.FilterObject.KategorijaFilter = '';
+			$scope.FilterObject.CijenaMinValue = 0;
+			$scope.FilterObject.CijenaMaxValue = $scope.NajvecaCijena;
+		
+			$( "#slider-range-cijena" ).slider({
+				range: true,
+				min: 0,
+				max: $scope.NajvecaCijena,
+				values: [ 0, $scope.NajvecaCijena ],
+				slide: function( event, ui ) 
+				{
+					$scope.FilterObject.CijenaMinValue = ui.values[0];
+					$scope.FilterObject.CijenaMaxValue = ui.values[1];
+		
+					$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+					$scope.tableParams.reload();
+				}
+			});
+		
+			$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
+			$scope.tableParams.reload();
+		
+			$scope.FilterObject.UniqueJediniceMjere = [...new Set($scope.tableParams._settings.dataset.map(a => a.JedinicaMjere))];
+			$scope.FilterObject.UniqueKategorije = [...new Set($scope.tableParams._settings.dataset.map(a => a.Kategorija.Naziv))];
+		}, function errorCallback(response) {
+			ResponseHandler.Handle(response);
 		});
-
-		$scope.NajvecaCijena = Math.max.apply(Math,$scope.Artikli.map(function(o){return o.JedinicnaCijena;}));
-		$scope.NajvecaCijena = parseInt($scope.NajvecaCijena) + 1;
-	
-		$scope.FilterObject = {};
-	
-		$scope.FilterObject.SifraArtiklaFilter = '';
-		$scope.FilterObject.NazivFilter = '';
-		$scope.FilterObject.OpisFilter = '';
-		$scope.FilterObject.JedinicaMjereFilter = '';
-		$scope.FilterObject.KategorijaFilter = '';
-		$scope.FilterObject.CijenaMinValue = 0;
-		$scope.FilterObject.CijenaMaxValue = $scope.NajvecaCijena;
-	
-		$( "#slider-range-cijena" ).slider({
-			range: true,
-			min: 0,
-			max: $scope.NajvecaCijena,
-			values: [ 0, $scope.NajvecaCijena ],
-			slide: function( event, ui ) 
-			{
-				$scope.FilterObject.CijenaMinValue = ui.values[0];
-				$scope.FilterObject.CijenaMaxValue = ui.values[1];
-	
-				$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
-				$scope.tableParams.reload();
-			}
-		});
-	
-		$scope.tableParams = ArtikliFilterSerivice.SetNgTable($scope);
-		$scope.tableParams.reload();
-	
-		$scope.FilterObject.UniqueJediniceMjere = [...new Set($scope.tableParams._settings.dataset.map(a => a.JedinicaMjere))];
-		$scope.FilterObject.UniqueKategorije = [...new Set($scope.tableParams._settings.dataset.map(a => a.Kategorija.Naziv))];
-	  }, function errorCallback(response) {
-		ResponseHandler.Handle(response);
-	  });
+	});
 
 	$http.get("http://localhost/KV2/Kategorije", $rootScope.ConfigSettings())
 	  .then(function(response) {
@@ -671,7 +793,7 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, V
 			$scope.Artikli[index] = response.data[0];
 
 			$('tr').removeClass('disabledRow'); //enables all rows
-			$('.customIconButton').prop('disabled', false);
+			$('.customIconButton').prop('disabled', false); //enable all buttons
 		});
 	}
 
@@ -684,7 +806,7 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, V
 	$scope.Submit = function(Artikl)
 	{
 		console.log(Artikl);
-		if(ValidationService.ValidateForm('#form' + Artikl.SifraArtikla))
+		if(GeneralServices.ValidateForm('#form' + Artikl.SifraArtikla))
 		{
 			$('tr').removeClass('disabledRow'); //enables all rows
 			$('.customIconButton').prop('disabled', false);
@@ -722,10 +844,111 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, V
 	{
 		$http.delete("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla, $rootScope.ConfigSettings())
 		.then(function() {
-			let index = $scope.Artikli.indexOf(Artikl);
-			$scope.Artikli.splice(index, 1);
+			$scope.Artikli = $scope.Artikli.filter(x => x.SifraArtikla != Artikl.SifraArtikla);
+			$scope.tableParams._settings.dataset = $scope.tableParams._settings.dataset.filter(x => x.SifraArtikla != Artikl.SifraArtikla);
 			$scope.tableParams.reload();
 		});
+	}
+});
+
+oModul.controller('pregledZaposlenikaKontroler', function($rootScope, $scope, $http, NgTableParams, GeneralServices, ArtikliFilterSerivice, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Pregled zaposlenika'], ['#!/pregled_zaposlenika']);
+
+	$http.get("http://localhost/KV2/Zaposlenici", $rootScope.ConfigSettings())
+	.then(function(response){
+		$scope.Zaposlenici = response.data;
+
+		$scope.tableParams = new NgTableParams(
+		{
+			sorting: 
+			{
+				Prezime: 'asc'
+			},
+		});
+		$scope.tableParams._settings.dataset = $scope.Zaposlenici;
+	})
+});
+
+oModul.controller('urediZaposlenikeKontroler', function($rootScope, $scope, $http, NgTableParams, GeneralServices, ArtikliFilterSerivice, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Uredi zaposlenike'], ['#!/uredi_zaposlenike']);
+
+	$http.get("http://localhost/KV2/Zaposlenici", $rootScope.ConfigSettings())
+	.then(function(response){
+		$scope.Zaposlenici = response.data;
+
+		$scope.tableParams = new NgTableParams(
+		{
+			sorting: 
+			{
+				Prezime: 'asc'
+			},
+		});
+		$scope.tableParams._settings.dataset = $scope.Zaposlenici;
+	})
+
+	$scope.AdminChange = function(Zaposlenik)
+	{
+		if(Zaposlenik.Admin == 1) {Zaposlenik.Admin = '0';}
+		else {Zaposlenik.Admin = '1';}
+
+		$scope.UrediZaposlenika(Zaposlenik);
+	}
+
+	$scope.DeaktivirajRacun = function(Zaposlenik)
+	{
+		Zaposlenik.Deaktiviran = '1';
+
+		$scope.UrediZaposlenika(Zaposlenik);
+	}
+
+	$scope.UrediZaposlenika = function(Zaposlenik)
+	{
+		$http.put("http://localhost/KV2/Zaposlenici", {
+			'SifraZaposlenika': Zaposlenik.SifraZaposlenika,
+			'Ime': Zaposlenik.Ime,
+			'Prezime': Zaposlenik.Prezime,
+			'Tema': Zaposlenik.Tema,
+			'Admin': Zaposlenik.Admin,
+			'Deaktiviran': Zaposlenik.Deaktiviran,
+			'Valuta': $rootScope.User.Valuta},
+			$rootScope.ConfigSettings())
+		.then(function(){
+		})
+	}
+})
+
+oModul.controller('urediProfilKontroler', function($rootScope, $scope, $http, GeneralServices){
+
+	$rootScope.SetBreadcrumb(['Uredi profil'], ['#!/uredi_profil']);
+
+	$http.get("http://localhost/KV2/Valute", $rootScope.ConfigSettings())
+	.then(function(response){
+		$scope.Valute = response.data;
+	})
+
+	$scope.Submit = function()
+	{
+		if(GeneralServices.ValidateForm('.customForm'))
+		{
+			$http.put("http://localhost/KV2/Zaposlenici", {
+				'SifraZaposlenika': $rootScope.User.SifraZaposlenika,
+				'Ime': $rootScope.User.Ime,
+				'Prezime': $rootScope.User.Prezime,
+				'Tema': $rootScope.User.Tema,
+				'Admin': $rootScope.User.Admin,
+				'Deaktiviran': $rootScope.User.Deaktiviran, 
+				'Valuta': $rootScope.User.Valuta},
+				$rootScope.ConfigSettings())
+			.then(function(){
+
+			})
+		}
+		else
+		{
+			
+		}
 	}
 });
 
@@ -783,7 +1006,17 @@ oModul.directive('artiklFiltriranje', function(){
 	};
 });
 
-oModul.factory('ValidationService', function()
+oModul.directive('logo', function(){
+	return {
+	   restrict:'E',
+	   templateUrl:'direktive/logo',
+	   scope: {
+		   forNavMenu: '='
+	   }
+	};
+});
+
+oModul.factory('GeneralServices', function($http)
 {
 	var factory = {};
 
@@ -802,6 +1035,20 @@ oModul.factory('ValidationService', function()
 		})
 
 		return Valid;
+	}
+
+	factory.GetExchangeRates = function()
+	{
+		return $http.get('https://api.exchangerate.host/latest?base=HRK').then(function(response)
+		{
+			let ExchangeRates = response.data.rates;
+			for (rate in ExchangeRates) 
+			{
+				//Invertira bazni exchgange rate
+				ExchangeRates[rate] = 1 / ExchangeRates[rate];
+			}
+			return ExchangeRates;
+		});
 	}
 
 	return factory;
@@ -867,8 +1114,8 @@ oModul.factory('RacuniFilterSerivice', function()
 		}
 
 		SortiraniRacuni = SortiraniRacuni.filter(x =>
-			x.UkupanIznos >= scope.FilterObject.IznosMinValue &&
-			x.UkupanIznos <= scope.FilterObject.IznosMaxValue)
+			x.UkupanIznosConverted >= scope.FilterObject.IznosMinValue &&
+			x.UkupanIznosConverted <= scope.FilterObject.IznosMaxValue)
 
 		SortiraniRacuni = SortiraniRacuni.filter(x =>
 			x.Stavke.length >= scope.FilterObject.StavkeMinValue &&
@@ -880,9 +1127,9 @@ oModul.factory('RacuniFilterSerivice', function()
 	}
 
 	return factory;
-})
+});
 
-oModul.factory('ArtikliFilterSerivice', function()
+oModul.factory('ArtikliFilterSerivice', function($http)
 {
 	var factory = {};
 
@@ -915,8 +1162,8 @@ oModul.factory('ArtikliFilterSerivice', function()
 		}
 
 		SortiraniArtikli = SortiraniArtikli.filter(x =>
-			x.JedinicnaCijena >= scope.FilterObject.CijenaMinValue &&
-			x.JedinicnaCijena <= scope.FilterObject.CijenaMaxValue);
+			x.JedinicnaCijenaConverted >= scope.FilterObject.CijenaMinValue &&
+			x.JedinicnaCijenaConverted <= scope.FilterObject.CijenaMaxValue);
 
 		if(scope.FilterObject.KategorijaFilter != '')
 		{
@@ -930,4 +1177,4 @@ oModul.factory('ArtikliFilterSerivice', function()
 	}
 
 	return factory;
-})
+});

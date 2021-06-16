@@ -1,0 +1,38 @@
+<div class="d-flex customFlex">
+	<h4>PREGLED ZAPOSLENIKA</h4>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3">
+	
+	<table ng-table="tableParams" class="table">
+		<tr ng-repeat="Zaposlenik in $data" ng-style="{ 'opacity' : (Zaposlenik.Deaktiviran == '1') ? '0.5' : '1' }">
+            <td>         
+                <img src="https://techcrunch.com/wp-content/uploads/2015/09/11667534_10102203860243201_2713296330820668368_n.jpg?w=528"
+                style="border-radius: 50%; height: 25px;">
+            </td>
+			<td title="'Šifra'" sortable="'SifraZaposlenika'">
+				{{Zaposlenik.SifraZaposlenika}}
+			</td>
+            <td title="'Ime'" sortable="'Ime'">
+				{{Zaposlenik.Ime}}
+			</td>
+            <td title="'Prezime'" sortable="'Prezime'">
+				{{Zaposlenik.Prezime}}
+			</td>
+            <td title="'Email'" sortable="'Email'">
+				{{Zaposlenik.Email}}
+			</td>
+			<td title="'Admin'" sortable="'Admin'" class="text-center">
+				<button class="customIconButton" ng-click="AdminChange(Zaposlenik)" ng-if="Zaposlenik.Deaktiviran == '0'">
+					<i class="fas fa-star AdminTrue" ng-if="Zaposlenik.Admin == 1"></i>
+					<i class="far fa-star AdminFalse" ng-if="Zaposlenik.Admin == 0"></i>
+				</button>		
+			</td>
+			<td title="'Deaktiviraj'" sortable="'Deaktiviran'" class="text-center">
+				<button class="customIconButton customIconButtonRed" ng-click="DeaktivirajRacun(Zaposlenik)">
+					<i class="fas fa-user-times" ng-if="Zaposlenik.Deaktiviran == 0"></i>
+				</button>
+			</td>
+		</tr>
+	</table>
+</div>

@@ -1,0 +1,28 @@
+<div class="d-flex customFlex">
+	<h4>PREGLED ZAPOSLENIKA</h4>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3">
+	
+	<table ng-table="tableParams" class="table">
+		<tr ng-repeat="Zaposlenik in $data">
+            <td>         
+                <img src="https://techcrunch.com/wp-content/uploads/2015/09/11667534_10102203860243201_2713296330820668368_n.jpg?w=528"
+                style="border-radius: 50%; height: 25px;">
+                <i class="fas fa-star" ng-if="Zaposlenik.Admin == 1"></i>
+            </td>
+			<td title="'Šifra'" sortable="'SifraZaposlenika'">
+				{{Zaposlenik.SifraZaposlenika}}
+			</td>
+            <td title="'Ime'" sortable="'Ime'">
+				{{Zaposlenik.Ime}}
+			</td>
+            <td title="'Prezime'" sortable="'Prezime'">
+				{{Zaposlenik.Prezime}}
+			</td>
+            <td title="'Email'" sortable="'Email'">
+				{{Zaposlenik.Email}}
+			</td>
+		</tr>
+	</table>
+</div>
