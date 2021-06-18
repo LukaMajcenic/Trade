@@ -7,11 +7,17 @@
     <div class="form-floating mt-3">
 		<input type="text" class="form-control" id="floatingIme" placeholder=" " ng-model="$root.User.Ime" autocomplete="off">
 		<label for="floatingIme">Ime</label>
+        <h3 class="validationLabel" ng-repeat="Error in $root.User.Errors" ng-if="Error.Atribut == 'Ime'">
+			<i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+		</h3>
 	</div>
 
     <div class="form-floating mt-3">
 		<input type="text" class="form-control" id="floatingPrezime" placeholder=" " ng-model="$root.User.Prezime" autocomplete="off">
 		<label for="floatingPrezime">Prezime</label>
+        <h3 class="validationLabel" ng-repeat="Error in $root.User.Errors" ng-if="Error.Atribut == 'Prezime'">
+			<i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+		</h3>
 	</div>
 
     <div class="form-floating mt-3" style="flex: 1;">

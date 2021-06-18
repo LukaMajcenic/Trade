@@ -121,4 +121,11 @@ class Valuta
 	}
 }
 
+class Racuni
+
+class Statistika
+{
+	public $Racuni
+}
+
 ?>

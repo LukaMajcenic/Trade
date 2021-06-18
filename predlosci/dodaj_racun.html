@@ -30,7 +30,9 @@
             <tr ng-repeat-start="Stavka in NoviRacun.Stavke">
                 <td>{{Stavka.SifraArtikla}}</td>
                 <td>{{Stavka.Naziv}}</td>
-                <td><input value="{{Stavka.Kolicina}}" ng-model="Stavka.Kolicina" ng-change="PromijeniUkupnuCijenu(Stavka)"></td>
+                <td><input value="{{Stavka.Kolicina}}" ng-model="Stavka.Kolicina" ng-if="Stavka.JedinicaMjere == 'Komad'"
+                    ng-change="PromijeniUkupnuCijenu(Stavka)" type="number" min="1" class="w-100"
+                    onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 48 && event.charCode <= 57"></td>
                 <td>{{Stavka.JedinicnaCijenaConverted}}</td>
                 <td>{{Stavka.UkupnaCijena}}</td>    
                 <td scope="col" class="align-middle text-center">

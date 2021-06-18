@@ -1,12 +1,18 @@
-<form ng-submit="submitParametar(artiklParametar)" class="customForm" id="form{{artiklParametar.SifraArtikla}}" novalidate>
+<form ng-submit="submitParametar(artiklParametar)" class="customForm" id="form{{artiklParametar.SifraArtikla}}" novalidate  autocomplete="off">
 	<div class="form-floating mt-3">
-		<input type="text" class="form-control" id="floatingNaziv" placeholder=" " ng-model="artiklParametar.Naziv" autocomplete="off">
+		<input type="text" class="form-control" id="floatingNaziv" placeholder=" " ng-model="artiklParametar.Naziv">
 		<label for="floatingNaziv">Naziv</label>
+		<h3 class="validationLabel" ng-repeat="Error in artiklParametar.Errors" ng-if="Error.Atribut == 'Naziv'">
+			<i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+		</h3>
 	</div>
 
 	<div class="form-floating mt-3">
 		<textarea type="text" class="form-control" rows="4" id="floatingOpis" placeholder=" " ng-model="artiklParametar.Opis"></textarea>
 		<label for="floatingOpis">Opis</label>
+		<h3 class="validationLabel" ng-repeat="Error in artiklParametar.Errors" ng-if="Error.Atribut == 'Opis'">
+			<i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+		</h3>
 	</div>
 
 	<div class="form-floating mt-3" style="flex: 1;">
@@ -19,11 +25,16 @@
 
 	<div class="d-flex">
 		<div class="form-floating mt-3" style="flex: 1">
-			<input type="number" min="0" step="0.01" class="form-control" id="floatingJedinicnaCijena" placeholder=" " ng-model="artiklParametar.JedinicnaCijena">
+			<input type="number" min="0" step="0.01" class="form-control" id="floatingJedinicnaCijena" placeholder=" " 
+			ng-model="artiklParametar.JedinicnaCijena" ng-change="changeParametar(artiklParametar)">
 			<label for="floatingJedinicnaCijena">Jedinična cijena</label>
+			<h3 class="validationLabel" ng-repeat="Error in artiklParametar.Errors" ng-if="Error.Atribut == 'JedinicnaCijena'">
+				<i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+			</h3>
 		</div>
 		<div class="form-floating mt-3 ms-1 w-25">
-			<select class="form-control" id="floatingValuta" ng-model="artiklParametar.SifraValute">
+			<select class="form-control" id="floatingValuta" ng-model="artiklParametar.SifraValute" 
+			ng-change="changeParametar(artiklParametar)">
 				<option ng-repeat="Valuta in valuteParametar" value="{{Valuta.SifraValute}}">
 					{{Valuta.SifraValute}} - {{Valuta.NazivValute}}
 				</option>
@@ -38,6 +49,11 @@
 			ng-repeat="Kategorija in kategorijeParametar" ng-value="Kategorija.SifraKategorije">{{Kategorija.Naziv}}</option>
 	   	</select>
 		<label for="floatingKategorija">Kategorija</label>
+	</div>
+
+	<div class="form-floating mt-3" style="flex: 1">
+		<input type="text" class="form-control" id="floatingSlika" placeholder=" " ng-model="artiklParametar.Slika">
+		<label for="floatingSlika">Slika url</label>
 	</div>
 
 	<div class="d-flex mt-3">

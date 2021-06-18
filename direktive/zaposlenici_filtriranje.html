@@ -1,0 +1,42 @@
+<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
+    Button with data-bs-target
+</button>
+
+<div class="collapse" id="collapseFiltriranje">
+	<div>
+		<div class="">
+
+			<input type="text" placeholder="Šifra zaposlenika" list="SifreZaposlenika" 
+			ng-model="filterObjectParametar.SifraZaposlenikaFilter" ng-change="filterChangeParametar()">
+			<datalist id="SifreZaposlenika">
+				<option ng-repeat="Zaposlenik in tableParamsParametar._settings.dataset">{{Zaposlenik.SifraZaposlenika}}</option>
+			</datalist>
+
+			<input type="text" placeholder="Ime" list="ImenaZaposlenika" 
+			ng-model="filterObjectParametar.ImeFilter" ng-change="filterChangeParametar()">
+			<datalist id="ImenaZaposlenika">
+				<option ng-repeat="Zaposlenik in tableParamsParametar._settings.dataset">{{Zaposlenik.Ime}}</option>
+			</datalist>
+
+			<input type="text" placeholder="Prezime" list="PrezimenaZaposlenika" 
+			ng-model="filterObjectParametar.PrezimeFilter" ng-change="filterChangeParametar()">
+			<datalist id="PrezimenaZaposlenika">
+				<option ng-repeat="Zaposlenik in tableParamsParametar._settings.dataset">{{Zaposlenik.Prezime}}</option>
+			</datalist>
+
+			<input type="text" placeholder="Email" list="EmailoviZaposlenika" 
+			ng-model="filterObjectParametar.EmailFilter" ng-change="filterChangeParametar()">
+			<datalist id="EmailoviZaposlenika">
+				<option ng-repeat="Zaposlenik in tableParamsParametar._settings.dataset">{{Zaposlenik.Email}}</option>
+			</datalist>
+
+			<div class="d-flex justify-content-center align-items-center">
+				<input type="checkbox" class="mx-0" ng-model="filterObjectParametar.PrikaziAdmine" ng-change="filterChangeParametar()">
+				PRIKAŽI VODITELJE
+				<input type="checkbox" ng-model="filterObjectParametar.PrikaziZaposlenike" ng-change="filterChangeParametar()">
+				PRIKAŽI ZAPOSLENIKE
+			</div>
+
+		</div>
+	</div>
+</div>

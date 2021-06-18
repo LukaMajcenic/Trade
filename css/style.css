@@ -149,10 +149,10 @@ input:-webkit-autofill
 .validationLabel
 {
 	color: red !important;
-    opacity: 0.6;
     font-size: 1rem;
-    background-color: rgba(255,0,0,0.2);
+    background-color: rgba(255,0,0,0.1);
     padding: 3px;
+	margin-bottom: 0px;
 }
 
 .table-hover>tbody>tr:hover 

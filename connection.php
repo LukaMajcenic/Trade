@@ -28,8 +28,7 @@ try
         }
         else if(in_array($_SERVER['HTTP_PAGEURL'], $AdminOnlyPages))
         {
-            $sQuery = "SELECT AdminX FROM zaposlenici";
-            $sQuery .= " WHERE SifraZaposlenika = '". $_SERVER['HTTP_SIFRAZAPOSLENIKA'] ."'";
+            $sQuery = "SELECT AdminX FROM zaposlenici WHERE SifraZaposlenika = '". $_SERVER['HTTP_SIFRAZAPOSLENIKA'] ."'";
 
             $oRecord = $oConnection->query($sQuery);
             while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))

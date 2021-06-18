@@ -21,7 +21,7 @@ function DohvatiStavke($oConnection, $SifraRacuna)
 		}
 
 		$oStavka = new Stavka($oRow['Kolicina'], $oRow['UkupnaCijena'], $oRow['SifraArtikla'], $oRow['Naziv'], $oRow['Opis'], 
-		$oRow['JedinicaMjere'], $oRow['JedinicnaCijena'], $oRow['Slika'], $oKategorija, null);
+		$oRow['JedinicaMjere'], $oRow['JedinicnaCijenaStavke'], $oRow['Slika'], $oKategorija, null);
 
 		array_push($Stavke, $oStavka);
 	}
@@ -133,33 +133,6 @@ switch ($_SERVER['REQUEST_METHOD'])
 			http_response_code(400);
 			echo 'Nisu svi parametri postavljeni!';
 		}
-		break;
-
-	case 'DELETE':
-		
-		if(isset($_GET['SifraRacuna']))
-		{
-			$sQuery = "DELETE FROM racuni WHERE SifraRacuna = :SifraRacuna";
-			$oStatement = $oConnection->prepare($sQuery);
-			$oData = array('SifraRacuna' => $_GET['SifraRacuna']);
-
-			if($oStatement->execute($oData))
-			{
-				echo "Račun '" . $_GET['SifraRacuna'] . "' obrisan";
-			}
-			else
-			{
-				http_response_code(400);
-				echo "Upit nije izvršen!";
-			}
-			break;
-		}
-		else
-		{
-			http_response_code(400);
-			echo 'Nisu svi parametri postavljeni!';
-		}
-
 		break;
 	
 	default:

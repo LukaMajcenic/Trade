@@ -70,7 +70,17 @@
         </tbody>
         <tfoot>
             <tr>
-                <td class="text-end" colspan="6"><br><h5><b>UKUPAN IZNOS </b>{{racunParametar.UkupanIznos}} {{racunParametar.SifraValute}}</h5></td>
+                <td class="text-end" colspan="6"><br><h5><b>UKUPAN IZNOS </b>
+                    <span ng-if="racunParametar.SifraValute == $root.User.Valuta" class="text-nowrap">
+                        {{racunParametar.UkupanIznos}} {{$root.User.Valuta}}
+                    </span>
+                    <span ng-if="racunParametar.SifraValute != $root.User.Valuta" class="text-nowrap">
+                        {{racunParametar.UkupanIznosConverted}} {{$root.User.Valuta}}
+                    </span>
+                    <small ng-if="racunParametar.SifraValute != $root.User.Valuta" class="text-nowrap originalCurrencyLabel">
+                        {{racunParametar.UkupanIznos}} {{racunParametar.SifraValute}}
+                    </small>
+                </h5></td>
             </tr>
         </tfoot>
     </table>

@@ -31,11 +31,11 @@ switch ($_SERVER['REQUEST_METHOD'])
 	case 'POST':
 		
 		$_POST = json_decode(file_get_contents('php://input'), true);
-		var_dump($_POST);
 
 		if(isset($_POST['Naziv']) && isset($_POST['Opis']) && isset($_POST['JedinicaMjere']) && isset($_POST['JedinicnaCijena']) && isset($_POST['SifraKategorije']) && isset($_POST['SifraValute']))
 		{
-			$sQuery = "INSERT INTO artikli (Naziv, Opis, JedinicaMjere, JedinicnaCijena, SifraKategorije, SifraValute) VALUES (:Naziv, :Opis, :JedinicaMjere, :JedinicnaCijena, :SifraKategorije, :SifraValute)";
+			$sQuery = "INSERT INTO artikli (Naziv, Opis, JedinicaMjere, JedinicnaCijena, SifraKategorije, SifraValute, Slika) 
+			VALUES (:Naziv, :Opis, :JedinicaMjere, :JedinicnaCijena, :SifraKategorije, :SifraValute, :Slika)";
 			$oStatement = $oConnection->prepare($sQuery);
 			$oData = array(
 				'Naziv' => $_POST['Naziv'],
@@ -43,8 +43,10 @@ switch ($_SERVER['REQUEST_METHOD'])
 				'JedinicaMjere' => $_POST['JedinicaMjere'],
 				'JedinicnaCijena' => $_POST['JedinicnaCijena'],
 				'SifraKategorije' => $_POST['SifraKategorije'],
-				'SifraValute' => $_POST['SifraValute']
+				'SifraValute' => $_POST['SifraValute'],
+				'Slika' => $_POST['Slika']
 			);
+
 
 			if($oStatement->execute($oData))
 			{
@@ -52,9 +54,18 @@ switch ($_SERVER['REQUEST_METHOD'])
 			}
 			else
 			{
-				http_response_code(400);
-				echo "Upit nije izvršen!";
+				switch($oStatement->errorCode())
+				{
+					case '23000':
+						http_response_code(409);
+						echo "Naziv";
+						break;
+					default:
+						http_response_code(400);
+						break;
+				}
 			}
+			
 		}
 		else
 		{
@@ -75,7 +86,8 @@ switch ($_SERVER['REQUEST_METHOD'])
 				JedinicaMjere = :JedinicaMjere, 
 				JedinicnaCijena = :JedinicnaCijena,
 				SifraKategorije = :SifraKategorije,
-				SifraValute = :SifraValute
+				SifraValute = :SifraValute,
+				Slika = :Slika
 				WHERE SifraArtikla = :SifraArtikla";
 			$oStatement = $oConnection->prepare($sQuery);
 			$oData = array(
@@ -85,7 +97,8 @@ switch ($_SERVER['REQUEST_METHOD'])
 				'JedinicaMjere' => $_PUT['JedinicaMjere'],
 				'JedinicnaCijena' => $_PUT['JedinicnaCijena'],
 				'SifraKategorije' => $_PUT['SifraKategorije'],
-				'SifraValute' => $_PUT['SifraValute']
+				'SifraValute' => $_PUT['SifraValute'],
+				'Slika' => $_PUT['Slika']
 			);
 
 			if($oStatement->execute($oData))
@@ -94,15 +107,22 @@ switch ($_SERVER['REQUEST_METHOD'])
 			}
 			else
 			{
-				http_response_code(400);
-				echo "Upit nije izvršen!";
+				switch($oStatement->errorCode())
+				{
+					case '23000':
+						http_response_code(409);
+						echo "Naziv";
+						break;
+					default:
+						http_response_code(400);
+						break;
+				}
 			}
 		}
 		else
 		{
 			http_response_code(400);
 			echo 'Nisu svi parametri postavljeni!';
-			var_dump($_PUT);
 		}
 		break;
 

@@ -23,11 +23,10 @@ oModul.run(['$rootScope', '$http', '$location', 'GeneralServices', function ($ro
 		}
 	}
 
-	$rootScope.BreadcrumbArray = [{Naziv : 'Home', Link: '#!/dodaj_racun'}]
 	$rootScope.SetBreadcrumb = function(Nazivi = null, Linkovi = null)
 	{
 		$rootScope.BreadcrumbArray = [];
-		$rootScope.BreadcrumbArray = [{Naziv : 'Home', Link: '#!/dodaj_racun'}]
+		$rootScope.BreadcrumbArray = [{Naziv : 'Home', Link: '#!/'}]
 
 		if(Nazivi != null && Linkovi != null)
 		{
@@ -37,6 +36,7 @@ oModul.run(['$rootScope', '$http', '$location', 'GeneralServices', function ($ro
 			}
 		}
 	}
+	$rootScope.SetBreadcrumb();
 
 	$rootScope.PostaviTemu = function()
 	{
@@ -61,16 +61,20 @@ oModul.run(['$rootScope', '$http', '$location', 'GeneralServices', function ($ro
 	}
 	
 	$rootScope.PostaviTemu();
+	$rootScope.User = {};
+	$rootScope.User.Valuta = 'ss';
 	$http.get("http://localhost/KV2/Zaposlenici?SifraZaposlenika=" + localStorage.getItem("SifraZaposlenika"), $rootScope.ConfigSettings())
 	.then(function(response) {
 		$rootScope.User = response.data[0];
 
 		localStorage.setItem("Tema", $rootScope.User.Tema);
 		$rootScope.PostaviTemu();
+	}, function(){
+		console.log('redirected');
 	});
 
 	window.addEventListener("storage", function (event) {
-		if(event.key == 'SifraZaposlenika')
+		if(event.key == 'SifraZaposlenika' || event.key == 'Valuta')
 		{
 			$rootScope.Logout();
 		}
@@ -82,7 +86,7 @@ oModul.factory('ResponseHandler', function($rootScope, $location)
 {
 	var factory = {};
 
-	factory.Handle = function(response)
+	factory.Handle = function(response, message = null)
 	{
 		switch(response.status)
 		{
@@ -95,7 +99,6 @@ oModul.factory('ResponseHandler', function($rootScope, $location)
 				$location.url("/pregled_racuna");
 				break;
 		}
-		console.log(response.status);
 	}
 
 	return factory;
@@ -103,8 +106,8 @@ oModul.factory('ResponseHandler', function($rootScope, $location)
 
 oModul.config(function($routeProvider){
 	$routeProvider.when('/', {
-		templateUrl: 'predlosci/pregled_racuna.html',
-		controller: 'pregledRacunaKontroler'
+		templateUrl: 'predlosci/home.html',
+		controller: 'homeKontroler'
 	});
 
 	$routeProvider.when('/login', {
@@ -115,7 +118,19 @@ oModul.config(function($routeProvider){
 	//Pregled svih racuna
 	$routeProvider.when('/pregled_racuna', {
 		templateUrl: 'predlosci/pregled_racuna.html',
-		controller: 'pregledRacunaKontroler'
+		controller: 'pregledRacunaKontroler',
+		/* resolve: {
+            app: function($q, $rootScope, $location) 
+			{
+                var defer = $q.defer();
+                if ($rootScope.currentUser == undefined) 
+				{
+                    $location.path('/login');
+                };
+                defer.resolve();
+                return defer.promise;
+            }
+		} */
 	});
 
 	//Pregled jednog racuna
@@ -183,7 +198,7 @@ oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window)
 
 	if($rootScope.User != undefined)
 	{
-		$window.location.href = '/KV2/#!/dodaj_racun';
+		$window.location.href = '/KV2/#!/';
 	}
 
 	$scope.User = {};
@@ -193,7 +208,6 @@ oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window)
 
 	$scope.Submit= function()
 	{
-		console.log($scope.User);
 		$http.post("http://localhost/KV2/Login", $scope.User)
 		.then(function(response) {
 			if(response.data == '')
@@ -204,13 +218,49 @@ oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window)
 			{
 				$rootScope.User = response.data;
 				localStorage.setItem("Tema", $rootScope.User.Tema);
+				localStorage.setItem("Valuta", $rootScope.User.Valuta);
+
 				$rootScope.PostaviTemu();
 				localStorage.setItem("SifraZaposlenika", $rootScope.User.SifraZaposlenika);
 				$rootScope.Config = {headers:{'SifraZaposlenika': localStorage.getItem("SifraZaposlenika")}};
-				$window.location.href = '/KV2/#!/dodaj_racun';
+				$window.location.href = '/KV2/#!/';
 			}
 		});
 	}
+});
+
+oModul.controller('homeKontroler', function($rootScope, $scope, $http, $window){
+
+	var ctx = $('#myChart');
+
+	const data = {
+		labels: [
+		  'Red',
+		  'Green',
+		  'Yellow',
+		  'Grey',
+		  'Blue'
+		],
+		datasets: [{
+		  label: 'My First Dataset',
+		  data: [11, 16, 7, 3, 14],
+		  backgroundColor: [
+			'rgb(255, 99, 132)',
+			'rgb(75, 192, 192)',
+			'rgb(255, 205, 86)',
+			'rgb(201, 203, 207)',
+			'rgb(54, 162, 235)'
+		  ]
+		}]
+	  };
+
+	const config = {
+		type: 'polarArea',
+		data: data,
+		options: {}
+	  };
+
+	  var myChart = new Chart(ctx, config);
 });
 
 oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, NgTableParams, GeneralServices, RacuniFilterSerivice, ResponseHandler){
@@ -233,7 +283,7 @@ oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, 
 		.then(function(response) {
 			$scope.Racuni = response.data;
 
-			$scope.Racuni.forEach(function(value){
+			$scope.Racuni.forEach(function(value){				
 				value.UkupanIznosConverted = parseFloat((ExchangeRates[value.SifraValute] * value.UkupanIznos).toFixed(2));
 			})
 			
@@ -278,6 +328,10 @@ oModul.controller('pregledJednogRacunaKontroler', function($rootScope, $scope, $
 	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + SifraRacuna, $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Racun = response.data[0];
+		$http.get(`https://api.exchangerate.host/convert?from=${$scope.Racun.SifraValute}&to=${$rootScope.User.Valuta}`)
+		.then(function(response){
+			$scope.Racun.UkupanIznosConverted = parseFloat((response.data.result * $scope.Racun.UkupanIznos).toFixed(2));
+		})
 	  }, function errorCallback(response) {
 		ResponseHandler.Handle(response);
 	  });
@@ -290,7 +344,7 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 	$scope.NoviRacun = {
 		UkupanIznos: 0.00,
 		Stavke: [],
-		SifraValute: 'HRK'
+		SifraValute: localStorage.getItem("Valuta")
 	}
 
 	var tick = function() 
@@ -320,8 +374,6 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 			.then(function(response){
 				value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
 				$scope.PromijeniUkupnuCijenu(value);
-
-				console.log(value);
 			})
 		})
 	}
@@ -336,7 +388,7 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 	    $scope.Artikli = response.data;
 
 		$scope.Artikli.forEach(function(value){
-			if(value.SifraValute != 'HRK')
+			if(value.SifraValute != $rootScope.User.Valuta)
 			{
 				$http.get(`https://api.exchangerate.host/convert?from=${value.SifraValute}&to=${$scope.NoviRacun.SifraValute}`)
 				.then(function(response){
@@ -368,10 +420,8 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 			SifraValute: Artikl.SifraValute,
 			JedinicnaCijenaConverted: Artikl.JedinicnaCijenaConverted
 		}
-		console.log(novaStavka);
 
 		$scope.NoviRacun.Stavke.push(novaStavka);
-
 		$scope.PromijeniUkupnuCijenu();
 	}
 
@@ -409,46 +459,45 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 
 	$scope.Submit = function()
 	{
-		let DatumRaw = new Date();
-		let Datum = DatumRaw.getFullYear() + '-'
-		+ (DatumRaw.getMonth()+1) + '-' 
-		+ DatumRaw.getDate() + ' '
-		+ DatumRaw.getHours() + ':'
-		+ DatumRaw.getMinutes() + ':'
-		+ DatumRaw.getSeconds();
-
-		$http.post("http://localhost/KV2/Racuni", {
+		$scope.NoviRacun.Stavke.forEach(function(Stavka){
+			if(Stavka.Kolicina != undefined)
+			{
+				$http.post("http://localhost/KV2/Racuni", {
 				'SifraZaposlenika': $rootScope.User.SifraZaposlenika,
 				'UkupanIznos': $scope.NoviRacun.UkupanIznos,
-				'Datum': Datum,
+				'Datum': $scope.Datum,
 				'SifraValute': $scope.NoviRacun.SifraValute
-		}, $rootScope.ConfigSettings())
-		.then(function() {
+				}, $rootScope.ConfigSettings())
+				.then(function() {
 
-			$http.get("http://localhost/KV2/Racuni?SifraZaposlenika=" + localStorage.getItem("SifraZaposlenika"), $rootScope.ConfigSettings())
-			.then(function(response) {
+					$http.get("http://localhost/KV2/Racuni?SifraZaposlenika=" + localStorage.getItem("SifraZaposlenika"), 
+					$rootScope.ConfigSettings())
+					.then(function(response) {
 
-				let BrojStavki = $scope.NoviRacun.Stavke.length;
-				$scope.NoviRacun.Stavke.forEach(function(value){
-			
-					$http.post("http://localhost/KV2/Stavke", {
-						'SifraArtikla': value.SifraArtikla,
-						'Kolicina': value.Kolicina,
-						'UkupnaCijena': value.UkupnaCijena,
-						'SifraRacuna': response.data
-					}, $rootScope.ConfigSettings())
-					.then(function() {
-						BrojStavki--;
-						if(BrojStavki == 0)
-						{
-							//Ako su sve stavke spremljene vracamo se na pregled racuna
-							$window.location.href = '/KV2/#!/pregled_racuna';
-						}
+						let BrojStavki = $scope.NoviRacun.Stavke.length;
+						$scope.NoviRacun.Stavke.forEach(function(value){
+					
+							$http.post("http://localhost/KV2/Stavke", {
+								'SifraArtikla': value.SifraArtikla,
+								'Kolicina': value.Kolicina,
+								'JedinicnaCijenaStavke': value.JedinicnaCijena,
+								'UkupnaCijena': value.UkupnaCijena,
+								'SifraRacuna': response.data
+							}, $rootScope.ConfigSettings())
+							.then(function() {
+								BrojStavki--;
+								if(BrojStavki == 0)
+								{
+									//Ako su sve stavke spremljene vracamo se na pregled racuna
+									$window.location.href = '/KV2/#!/pregled_racuna';
+								}
+							});
+				
+						})
 					});
-		
-				})
-			});
-		});
+				});
+			}
+		})		
 	}	  
 });
 
@@ -485,7 +534,7 @@ oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http
 				},
 			});
 
-			$scope.NajveciUkupanIznos = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.UkupanIznos;}));
+			$scope.NajveciUkupanIznos = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.UkupanIznosConverted;}));
 			$scope.NajveciUkupanIznos = parseInt($scope.NajveciUkupanIznos) + 1;
 			$scope.NajveciBrojStavki = Math.max.apply(Math,$scope.Racuni.map(function(o){return o.Stavke.length;}));
 
@@ -641,7 +690,6 @@ oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, Ge
 	$http.get("http://localhost/KV2/Valute", $rootScope.ConfigSettings())
 	  .then(function(response) {
 	    $scope.Valute = response.data;
-		console.log($scope.Valute);
 	  });
 
 	$http.get("http://localhost/KV2/Artikli", $rootScope.ConfigSettings())
@@ -656,41 +704,52 @@ oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, Ge
 	    $scope.Kategorije = response.data;
 	    $scope.NoviArtikl.Kategorija.SifraKategorije = response.data[0].SifraKategorije;
 
-		console.log($scope.NoviArtikl);
 	  }, function errorCallback(response) {
 		ResponseHandler.Handle(response);
 	  });
 
-	$scope.NoviArtikl = {
-		Naziv: "",
-		Opis: "",
-		JedinicaMjere: "Komad",
-		JedinicnaCijena: "",
-		Kategorija: {
-			SifraKategorije: null,
-			Naziv: ""
-		},
-		SifraValute: 'HRK'
+	function PostaviNoviArtikl()
+	{
+		$scope.NoviArtikl = {
+			Naziv: "",
+			Opis: "",
+			JedinicaMjere: "Komad",
+			JedinicnaCijena: null,
+			Kategorija: {
+				SifraKategorije: '1',
+				Naziv: ""
+			},
+			SifraValute: localStorage.getItem("Valuta"),
+			Slika: null
+		}
 	}
+	PostaviNoviArtikl();
 
 	$scope.Submit = function(NoviArtikl)
 	{
-		if(GeneralServices.ValidateForm('.customForm'))
+		$scope.NoviArtikl.Errors = GeneralServices.ValidateForm($scope.NoviArtikl);
+		if($scope.NoviArtikl.Errors.length == 0)
 		{
-			console.log($scope.NoviArtikl);
 			$http.post("http://localhost/KV2/Artikli", {
 				'SifraArtikla' : NoviArtikl.SifraArtikla,
 				'Naziv': NoviArtikl.Naziv,
 				'Opis': NoviArtikl.Opis,
 				'JedinicaMjere': NoviArtikl.JedinicaMjere,
-				'JedinicnaCijena': NoviArtikl.JedinicnaCijena,
+				'JedinicnaCijena': NoviArtikl.JedinicnaCijena.toFixed(2),
 				'SifraKategorije': NoviArtikl.Kategorija.SifraKategorije,
-				'SifraValute': NoviArtikl.SifraValute
+				'SifraValute': NoviArtikl.SifraValute,
+				'Slika': NoviArtikl.Slika
 			}, $rootScope.ConfigSettings())
 			  .then(function(response) {
 			  	$('.customForm')[0].reset();
-			  }, function errorCallback(response) {
+				PostaviNoviArtikl();
+			  }, function(response) {
 				ResponseHandler.Handle(response);
+
+				if(response.status == 409)
+				{
+					$scope.NoviArtikl.Errors.push({'Atribut': response.data, 'Poruka': `Artikl s nazivom ${NoviArtikl.Naziv} već postoji`});
+				}
 			  });
 		}
 		else
@@ -732,7 +791,7 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, G
 			{
 				sorting: 
 				{
-					SifraArtikla: 'asc'
+					Naziv: 'asc'
 				},
 			});
 
@@ -789,30 +848,46 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, G
 	{
 		$http.get("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla, $rootScope.ConfigSettings())
 		.then(function(response) {
-			const index = $scope.Artikli.findIndex(x => x.SifraArtikla == Artikl.SifraArtikla);
-			$scope.Artikli[index] = response.data[0];
+			$http.get(`https://api.exchangerate.host/convert?from=${Artikl.SifraValute}&to=${$rootScope.User.Valuta}`)
+			.then(function(exchangeRate) {
+				response.data[0].JedinicnaCijenaConverted = parseFloat((exchangeRate.data.result * Artikl.JedinicnaCijena).toFixed(2));
 
-			$('tr').removeClass('disabledRow'); //enables all rows
-			$('.customIconButton').prop('disabled', false); //enable all buttons
+				let index = $scope.Artikli.findIndex(x => x.SifraArtikla == Artikl.SifraArtikla);
+				$scope.Artikli[index] = response.data[0];
+
+				index = $scope.tableParams._settings.dataset.findIndex(x => x.SifraArtikla == Artikl.SifraArtikla);
+				for (attr in $scope.tableParams._settings.dataset[index])
+				{
+					$scope.tableParams._settings.dataset[index][attr] = response.data[0][attr];
+				}
+				$scope.tableParams.reload();
+
+				$('tr').removeClass('disabledRow'); //enables all rows
+				$('.customIconButton').prop('disabled', false); //enable all buttons
+				$('.collapse').collapse('hide');
+			});
+			
+			
 		});
 	}
 
 
 	$scope.Change = function(Artikl)
 	{
+		//Rucno mijenjanje naziva kategorije da odgovara sifri kategorije koja je bindana na select
 		Artikl.Kategorija.Naziv = $scope.Kategorije.find(x => x.SifraKategorije == Artikl.Kategorija.SifraKategorije).Naziv;
+
+		$http.get(`https://api.exchangerate.host/convert?from=${Artikl.SifraValute}&to=${$rootScope.User.Valuta}`)
+		.then(function(response) {
+			Artikl.JedinicnaCijenaConverted = parseFloat((response.data.result * Artikl.JedinicnaCijena).toFixed(2));
+		});
 	}
 
 	$scope.Submit = function(Artikl)
 	{
-		console.log(Artikl);
-		if(GeneralServices.ValidateForm('#form' + Artikl.SifraArtikla))
-		{
-			$('tr').removeClass('disabledRow'); //enables all rows
-			$('.customIconButton').prop('disabled', false);
-			$('.collapse').collapse('hide');
-			console.log(Artikl);
-
+		Artikl.Errors = GeneralServices.ValidateForm(Artikl);
+		if(Artikl.Errors.length == 0)
+		{			
 			$http.put("http://localhost/KV2/Artikli", {
 				'SifraArtikla' : Artikl.SifraArtikla,
 				'Naziv': Artikl.Naziv,
@@ -820,19 +895,21 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, G
 				'JedinicaMjere': Artikl.JedinicaMjere,
 				'JedinicnaCijena': Artikl.JedinicnaCijena,
 				'SifraKategorije': Artikl.Kategorija.SifraKategorije,
-				'SifraValute': Artikl.SifraValute
+				'SifraValute': Artikl.SifraValute,
+				'Slika': Artikl.Slika
 			}, $rootScope.ConfigSettings())
-			  .then(function() {
-				if(Artikl.SifraValute != 'HRK')
-				{
-					$http.get(`http://free.currconv.com/api/v7/convert?apiKey=dd8550b7929baea6904f&q=${Artikl.SifraValute}_HRK&compact=y`)
-					.then(function(response) {
-						Artikl.JedinicnaCijenaConverted = (response.data[Artikl.SifraValute + '_HRK'].val * Artikl.JedinicnaCijena).toFixed(2);;
-					});
-				}
-			  }, function (response) {
+			.then(function() {
+				$('tr').removeClass('disabledRow'); //enables all rows
+				$('.customIconButton').prop('disabled', false);
+				$('.collapse').collapse('hide');
+			}, function (response) {
+				ResponseHandler.Handle(response);
 
-			  });
+				if(response.status == 409)
+				{
+					Artikl.Errors.push({'Atribut': response.data, 'Poruka': `Artikl s nazivom ${Artikl.Naziv} već postoji`});
+				}
+			});
 		}
 		else
 		{
@@ -851,10 +928,16 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, G
 	}
 });
 
-oModul.controller('pregledZaposlenikaKontroler', function($rootScope, $scope, $http, NgTableParams, GeneralServices, ArtikliFilterSerivice, ResponseHandler){
+oModul.controller('pregledZaposlenikaKontroler', function($rootScope, $scope, $http, NgTableParams, ZaposleniciFilterService, ResponseHandler){
 
 	$rootScope.SetBreadcrumb(['Pregled zaposlenika'], ['#!/pregled_zaposlenika']);
 
+	$scope.FilterChange = function()
+	{
+		$scope.tableParams = ZaposleniciFilterService.SetNgTable($scope);
+		$scope.tableParams.reload();
+	}
+
 	$http.get("http://localhost/KV2/Zaposlenici", $rootScope.ConfigSettings())
 	.then(function(response){
 		$scope.Zaposlenici = response.data;
@@ -866,13 +949,30 @@ oModul.controller('pregledZaposlenikaKontroler', function($rootScope, $scope, $h
 				Prezime: 'asc'
 			},
 		});
-		$scope.tableParams._settings.dataset = $scope.Zaposlenici;
+
+		$scope.FilterObject = {};
+
+		$scope.FilterObject.SifraZaposlenikaFilter = '';
+		$scope.FilterObject.ImeFilter = '';
+		$scope.FilterObject.PrezimeFilter = '';
+		$scope.FilterObject.EmailFilter = '';
+		$scope.FilterObject.PrikaziAdmine = true;
+		$scope.FilterObject.PrikaziZaposlenike = true;
+
+		$scope.tableParams = ZaposleniciFilterService.SetNgTable($scope);
+		$scope.tableParams.reload();
 	})
 });
 
-oModul.controller('urediZaposlenikeKontroler', function($rootScope, $scope, $http, NgTableParams, GeneralServices, ArtikliFilterSerivice, ResponseHandler){
+oModul.controller('urediZaposlenikeKontroler', function($rootScope, $scope, $http, NgTableParams, ZaposleniciFilterService, ResponseHandler){
 
 	$rootScope.SetBreadcrumb(['Uredi zaposlenike'], ['#!/uredi_zaposlenike']);
+
+	$scope.FilterChange = function()
+	{
+		$scope.tableParams = ZaposleniciFilterService.SetNgTable($scope);
+		$scope.tableParams.reload();
+	}
 
 	$http.get("http://localhost/KV2/Zaposlenici", $rootScope.ConfigSettings())
 	.then(function(response){
@@ -885,7 +985,18 @@ oModul.controller('urediZaposlenikeKontroler', function($rootScope, $scope, $htt
 				Prezime: 'asc'
 			},
 		});
-		$scope.tableParams._settings.dataset = $scope.Zaposlenici;
+
+		$scope.FilterObject = {};
+
+		$scope.FilterObject.SifraZaposlenikaFilter = '';
+		$scope.FilterObject.ImeFilter = '';
+		$scope.FilterObject.PrezimeFilter = '';
+		$scope.FilterObject.EmailFilter = '';
+		$scope.FilterObject.PrikaziAdmine = true;
+		$scope.FilterObject.PrikaziZaposlenike = true;
+
+		$scope.tableParams = ZaposleniciFilterService.SetNgTable($scope);
+		$scope.tableParams.reload();
 	})
 
 	$scope.AdminChange = function(Zaposlenik)
@@ -930,7 +1041,9 @@ oModul.controller('urediProfilKontroler', function($rootScope, $scope, $http, Ge
 
 	$scope.Submit = function()
 	{
-		if(GeneralServices.ValidateForm('.customForm'))
+		$rootScope.User.Errors = GeneralServices.ValidateForm($rootScope.User);
+
+		if($rootScope.User.Errors.length == 0)
 		{
 			$http.put("http://localhost/KV2/Zaposlenici", {
 				'SifraZaposlenika': $rootScope.User.SifraZaposlenika,
@@ -942,7 +1055,7 @@ oModul.controller('urediProfilKontroler', function($rootScope, $scope, $http, Ge
 				'Valuta': $rootScope.User.Valuta},
 				$rootScope.ConfigSettings())
 			.then(function(){
-
+				localStorage.setItem('Valuta', $rootScope.User.Valuta);
 			})
 		}
 		else
@@ -1006,6 +1119,18 @@ oModul.directive('artiklFiltriranje', function(){
 	};
 });
 
+oModul.directive('zaposleniciFiltriranje', function(){
+	return {
+	   restrict:'E',
+	   templateUrl:'direktive/zaposlenici_filtriranje',
+	   scope: {
+		tableParamsParametar: '=',
+		filterObjectParametar: '=',
+		filterChangeParametar: '&'
+      },
+	};
+});
+
 oModul.directive('logo', function(){
 	return {
 	   restrict:'E',
@@ -1016,35 +1141,48 @@ oModul.directive('logo', function(){
 	};
 });
 
-oModul.factory('GeneralServices', function($http)
+oModul.factory('GeneralServices', function($rootScope, $http)
 {
 	var factory = {};
 
-	factory.ValidateForm = function(selector)
+	factory.ValidateForm = function(Object = null)
 	{
-		let Valid = true;
+		let Errors = [];
 
-		$(selector).find('.validationLabel').remove();
-		$(selector).find('*').each(function()
+		for (prop in Object) 
 		{
-			if(($(this).prop('tagName') == 'INPUT' || $(this).prop('tagName') == 'TEXTAREA') && $(this).val() == '')
+			if(Object[prop] == '' || Object[prop] === null)
 			{
-				Valid = false;
-				$(this).after('<h3 class="validationLabel mb-2"><i class="fas fa-exclamation-circle me-1"></i>Polje ne može biti prazno!</h3>');
+				if(prop != 'Slika')
+				{
+					Errors.push({'Atribut': prop, 'Poruka': 'Polje ne može biti prazno!'})
+				}
 			}
-		})
+			
+			if(Object[prop] === undefined)
+			{
+				Errors.push({'Atribut': prop, 'Poruka': 'Neispravan unos!'})
+			}
+		}
 
-		return Valid;
+		return Errors;
 	}
 
 	factory.GetExchangeRates = function()
 	{
-		return $http.get('https://api.exchangerate.host/latest?base=HRK').then(function(response)
+		let BaseCurrency = 'HRK';
+		if($rootScope.User != undefined)
+		{
+			//Ako je korisnik logiran
+			BaseCurrency = $rootScope.User.Valuta;
+		}
+		
+		return $http.get('https://api.exchangerate.host/latest?base=' + BaseCurrency).then(function(response)
 		{
 			let ExchangeRates = response.data.rates;
 			for (rate in ExchangeRates) 
 			{
-				//Invertira bazni exchgange rate
+				//Invertira bazni exchange rate
 				ExchangeRates[rate] = 1 / ExchangeRates[rate];
 			}
 			return ExchangeRates;
@@ -1129,7 +1267,7 @@ oModul.factory('RacuniFilterSerivice', function()
 	return factory;
 });
 
-oModul.factory('ArtikliFilterSerivice', function($http)
+oModul.factory('ArtikliFilterSerivice', function()
 {
 	var factory = {};
 
@@ -1172,6 +1310,58 @@ oModul.factory('ArtikliFilterSerivice', function($http)
 		}
 
 		scope.tableParams._settings.dataset = SortiraniArtikli;
+
+		return scope.tableParams;
+	}
+
+	return factory;
+});
+
+oModul.factory('ZaposleniciFilterService', function()
+{
+	var factory = {};
+
+	factory.SetNgTable = function(scope)
+	{
+ 		let SortiraniZaposlenici = scope.Zaposlenici;
+
+		if(scope.FilterObject.SifraZaposlenikaFilter != '')
+		{
+			SortiraniZaposlenici = SortiraniZaposlenici.filter(x =>
+				x.SifraZaposlenika.toString().includes(scope.FilterObject.SifraZaposlenikaFilter.toString()))
+		}
+
+		if(scope.FilterObject.ImeFilter != '')
+		{
+			SortiraniZaposlenici = SortiraniZaposlenici.filter(x =>
+				x.Ime.toLowerCase().includes(scope.FilterObject.ImeFilter.toLowerCase()))
+		}
+
+		if(scope.FilterObject.PrezimeFilter != '')
+		{
+			SortiraniZaposlenici = SortiraniZaposlenici.filter(x =>
+				x.Prezime.toLowerCase().includes(scope.FilterObject.PrezimeFilter.toLowerCase()))
+		}
+
+		if(scope.FilterObject.EmailFilter != '')
+		{
+			SortiraniZaposlenici = SortiraniZaposlenici.filter(x =>
+				x.Email.toLowerCase().includes(scope.FilterObject.EmailFilter.toLowerCase()))
+		}
+
+		if(!scope.FilterObject.PrikaziAdmine)
+		{
+			SortiraniZaposlenici = SortiraniZaposlenici.filter(x =>
+				x.Admin == false)
+		}
+
+		if(!scope.FilterObject.PrikaziZaposlenike)
+		{
+			SortiraniZaposlenici = SortiraniZaposlenici.filter(x =>
+				x.Admin == true)
+		}
+
+		scope.tableParams._settings.dataset = SortiraniZaposlenici;
 
 		return scope.tableParams;
 	}

@@ -37,9 +37,17 @@
     text-decoration: none;
 }
 
-.customIconButtonRed i, .customIconButtonRed i:hover
+.customIconButtonRed i
 {
 	color: var(--customRed);
+	padding: 5px;
+	border-radius: 50%;
+}
+
+.customIconButtonRed i:hover
+{
+	transform: scale(1.1);
+    background-color: rgb(255 0 0 / 10%);
 }
 
 .customIconButtonForeground
