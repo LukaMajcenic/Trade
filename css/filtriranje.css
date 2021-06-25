@@ -1,0 +1,39 @@
+#collapseFiltriranje input[type=text], #collapseFiltriranje > .selectDiv, #collapseFiltriranje .slider-range,
+#collapseFiltriranje select
+{
+    flex: 1;
+    margin-bottom: 10px;
+    background-color: var(--backgroundDarker2);
+    border: none;
+    color: var(--foreground);
+    padding: 3px;
+}
+
+#collapseFiltriranje input[type=text]:focus, #collapseFiltriranje select:focus
+{
+    outline: none;
+}
+
+#collapseFiltriranje .SliderValue
+{
+    color: var(--foreground);
+}
+
+.ui-widget.ui-widget-content
+{
+    border: none !important;
+    background-color: var(--backgroundDarker2);
+    border-radius: 0px;
+}
+
+.ui-widget-header
+{
+    background: var(--customRed) !important;
+}
+
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, 
+html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active
+{
+    border: 2px solid var(--customRed) !important;
+    border-radius: 0px;
+}

@@ -21,19 +21,19 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 		<div class="card-header">
 			{{Artikl.Kategorija.Naziv}}
 		</div>
-		<img src="{{Artikl.Slika}}" class="card-img-top" alt="...">
+		<img src="{{Artikl.Slika}}" class="card-img-top" alt="..." ng-if="Artikl.Slika">
 		<div class="card-body">
 			<h5 class="card-title">{{Artikl.Naziv}}</h5>
 			<p class="card-text">{{Artikl.Opis}}</p>
 		</div>
 		<div class="card-footer">
-			<span ng-if="Artikl.SifraValute == 'HRK'" class="text-nowrap">
+			<span ng-if="Artikl.SifraValute == $root.User.Valuta" class="text-nowrap">
 				{{Artikl.JedinicnaCijena}} HRK
 			</span>
-			<span ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap">
+			<span ng-if="Artikl.SifraValute != $root.User.Valuta" class="text-nowrap">
 				{{Artikl.JedinicnaCijenaConverted}} HRK
 			</span>
-			<small ng-if="Artikl.SifraValute != 'HRK'" class="text-nowrap originalCurrencyLabel">
+			<small ng-if="Artikl.SifraValute != $root.User.Valuta" class="text-nowrap originalCurrencyLabel">
 				{{Artikl.JedinicnaCijena}} {{Artikl.SifraValute}}
 			</small>
 		</div>

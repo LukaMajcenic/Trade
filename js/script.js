@@ -34,3 +34,9 @@ function ChangeTheme()
 	}
 		
 }
+
+$('body').on('click', 'button', function() 
+{
+	console.log()
+    $(this).find('.fa-caret-down').toggleClass("up");
+});

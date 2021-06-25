@@ -149,3 +149,16 @@ a:hover
 {
     opacity: 0.5;
 }
+
+@media screen and (max-width:768px)
+{
+    .userInfoDivSpan
+    {
+        display: none;
+    }
+
+    .noviRacunContainer 
+    {
+        margin-top: 0px;
+    }
+}

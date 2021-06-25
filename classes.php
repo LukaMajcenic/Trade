@@ -121,11 +121,15 @@ class Valuta
 	}
 }
 
-class Racuni
 
 class Statistika
 {
-	public $Racuni
+	public $Racuni;
+
+	function __construct($Racuni)
+	{
+		$this->Racuni = $Racuni;
+	}
 }
 
 ?>

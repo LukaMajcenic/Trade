@@ -1,48 +1,50 @@
-<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
-    Button with data-bs-target
+<button class="customButton" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
+    Filtriranje<i class="fas fa-caret-down"></i>
 </button>
 
 <div class="collapse" id="collapseFiltriranje">
-	<div>
-		<div class="">
-
-			<input type="text" placeholder="Šifra artikla" list="SifreArtikla" 
-			ng-model="filterObjectParametar.SifraArtiklaFilter" ng-change="filterChangeParametar()">
-			<datalist id="SifreArtikla">
-				<option ng-repeat="Artikl in tableParamsParametar._settings.dataset" >{{Artikl.SifraArtikla}} </option>
-			</datalist>
-
-			<input type="text" placeholder="Naziv" list="NaziviArtikla" 
-			ng-model="filterObjectParametar.NazivFilter" ng-change="filterChangeParametar()">
-			<datalist id="NaziviArtikla">
-				<option ng-repeat="Artikl in tableParamsParametar._settings.dataset" >{{Artikl.Naziv}} </option>
-			</datalist>
-
-			<input type="text" placeholder="Opis" list="OpisiArtikla" 
-			ng-model="filterObjectParametar.OpisFilter" ng-change="filterChangeParametar()">
-			<datalist id="OpisiArtikla">
-				<option ng-repeat="Artikl in tableParamsParametar._settings.dataset" >{{Artikl.Opis}} </option>
-			</datalist>
-
-			<select ng-model="filterObjectParametar.JedinicaMjereFilter" ng-change="filterChangeParametar()">
-				<option value="" selected>Jedinica Mjere</option>
-				<option ng-repeat="JedinicaMjere in filterObjectParametar.UniqueJediniceMjere" value="{{JedinicaMjere}}">{{JedinicaMjere}}</option>
-			</select>
-
-			<br>
-			<div class="d-flex justify-content-between">
-				<span class="SliderValue">{{filterObjectParametar.CijenaMinValue}}</span>
-				<span>CIJENA</span>
-				<span class="SliderValue">{{filterObjectParametar.CijenaMaxValue}}</span>
-			</div>
-			<div id="slider-range-cijena"></div>
-			<br>
-
-			<select ng-model="filterObjectParametar.KategorijaFilter" ng-change="filterChangeParametar()">
-				<option value="" selected>Kategorija</option>
-				<option ng-repeat="Kategorija in filterObjectParametar.UniqueKategorije" value="{{Kategorija}}">{{Kategorija}}</option>
-			</select>
-
-		</div>
+	<div class="d-flex justify-content-evenly align-items-center mt-3">
+		<input type="text" placeholder="Šifra artikla" list="SifreArtikla" 
+		ng-model="filterObjectParametar.SifraArtiklaFilter" ng-change="filterChangeParametar()">
+		<datalist id="SifreArtikla">
+			<option ng-repeat="Artikl in tableParamsParametar._settings.dataset" >{{Artikl.SifraArtikla}} </option>
+		</datalist>
 	</div>
+
+	<div class="d-flex justify-content-center">
+		<input type="text" placeholder="Naziv" list="NaziviArtikla" 
+		ng-model="filterObjectParametar.NazivFilter" ng-change="filterChangeParametar()">
+		<datalist id="NaziviArtikla">
+			<option ng-repeat="Artikl in tableParamsParametar._settings.dataset" >{{Artikl.Naziv}} </option>
+		</datalist>
+	</div>
+
+	<div class="d-flex justify-content-center">
+		<input type="text" placeholder="Opis" list="OpisiArtikla" 
+		ng-model="filterObjectParametar.OpisFilter" ng-change="filterChangeParametar()">
+		<datalist id="OpisiArtikla">
+			<option ng-repeat="Artikl in tableParamsParametar._settings.dataset" >{{Artikl.Opis}} </option>
+		</datalist>
+	</div>
+
+	<div class="d-flex justify-content-center">
+		<select ng-model="filterObjectParametar.JedinicaMjereFilter" ng-change="filterChangeParametar()">
+			<option value="" selected>Jedinica Mjere</option>
+			<option ng-repeat="JedinicaMjere in filterObjectParametar.UniqueJediniceMjere" value="{{JedinicaMjere}}">{{JedinicaMjere}}</option>
+		</select>
+	</div>
+
+	<div class="d-flex justify-content-center">
+		<select ng-model="filterObjectParametar.KategorijaFilter" ng-change="filterChangeParametar()">
+			<option value="" selected>Kategorija</option>
+			<option ng-repeat="Kategorija in filterObjectParametar.UniqueKategorije" value="{{Kategorija}}">{{Kategorija}}</option>
+		</select>
+	</div>
+
+	<div class="d-flex justify-content-between">
+		<span class="SliderValue">{{filterObjectParametar.CijenaMinValue}}</span>
+		<span class="SliderValue">CIJENA</span>
+		<span class="SliderValue">{{filterObjectParametar.CijenaMaxValue}}</span>
+	</div>
+	<div id="slider-range-cijena"></div>
 </div>

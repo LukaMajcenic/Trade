@@ -9,6 +9,7 @@
 	<link rel="stylesheet" type="text/css" href="css/style.css">
 	<link rel="stylesheet" type="text/css" href="css/menu.css">
 	<link rel="stylesheet" type="text/css" href="css/buttons.css">
+	<link rel="stylesheet" type="text/css" href="css/filtriranje.css">
 
   	<script src="https://kit.fontawesome.com/2ed5dcf434.js" crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
@@ -23,6 +24,16 @@
 	<script src="https://unpkg.com/ng-table@3.0.1//bundles/ng-table.min.js"></script>
 </head>
 <body>
+
+	<div class="alertDiv bg-success bg-gradient">
+		<div>
+			<i class="fas fa-info-circle"></i>
+			{{$root.AlertMessage}}
+		</div>
+		<button class="customIconButton customIconButtonWhite" ng-click="Open(Artikl)">
+			<i class="fas fa-times"></i>
+		</button>	
+	</div>
 
 	<nav class="navbar navbar-expand-md navbar-dark p-0 shadow-sm" ng-if="$root.User != undefined">
 	  <div class="container-fluid pe-0">
@@ -47,7 +58,7 @@
 	            <li><a class="dropdown-item" href="#!/pregled_racuna">Pregled<i class="far fa-eye"></i></a></li>
 	            <li><hr class="dropdown-divider"></li>
 	            <li><a class="dropdown-item" href="#!/dodaj_racun">Dodaj<i class="fas fa-plus-circle"></i></a></li>
-	            <li><a class="dropdown-item" href="#!/storniraj_racune">Storniraj<i class="fas fa-undo"></i></i></a></li>
+	            <li ng-if="$root.User.Admin == 1"><a class="dropdown-item" href="#!/storniraj_racune">Storniraj<i class="fas fa-undo"></i></i></a></li>
 	          </ul>
 	        </li>
 
@@ -57,13 +68,13 @@
 	          </a>
 	          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
 	            <li><a class="dropdown-item" href="#!/pregled_artikla">Pregled<i class="far fa-eye"></i></a></li>
-	            <li><hr class="dropdown-divider"></li>
-	            <li><a class="dropdown-item" href="#!/dodaj_artikl">Dodaj<i class="fas fa-plus-circle"></i></a></li>
-	            <li><a class="dropdown-item" href="#!/uredi_artikle">Uredi<i class="fas fa-cog"></i></a></li>
+	            <li ng-if="$root.User.Admin == 1"><hr class="dropdown-divider"></li>
+	            <li ng-if="$root.User.Admin == 1"><a class="dropdown-item" href="#!/dodaj_artikl">Dodaj<i class="fas fa-plus-circle"></i></a></li>
+	            <li ng-if="$root.User.Admin == 1"><a class="dropdown-item" href="#!/uredi_artikle">Uredi<i class="fas fa-cog"></i></a></li>
 	          </ul>
 	        </li>
 
-	        <li class="nav-item dropdown">
+	        <li class="nav-item dropdown" ng-if="$root.User.Admin == 1">
 	          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 	            ZAPOSLENICI
 	          </a>
@@ -79,6 +90,7 @@
 	      <div class="d-flex">
 
       		<ul class="navbar-nav me-auto mb-2 mb-md-0 w-100">
+
       			<li class="nav-item dropdown">
 		          <a class="nav-link dropdown-toggle text-uppercase" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" 
 				  aria-expanded="false">				  	
@@ -92,7 +104,7 @@
 		          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
 		          	<li><a class="dropdown-item" href="#!/uredi_profil">Uredi<i class="fas fa-user-cog"></i></a></li>
 		            <li><hr class="dropdown-divider"></li>
-		            <li><a class="dropdown-item" ng-click="$root.Logout()">Odjava<i class="fas fa-sign-in-alt"></i></a></li>  
+		            <li><a class="dropdown-item" ng-click="$root.Logout()">Odjava<i class="fas fa-sign-out-alt"></i></a></li>  
 		          </ul>
 		        </li>
 
@@ -115,11 +127,13 @@
 			<li class="breadcrumb-item active" aria-current="page">{{$root.BreadcrumbArray[$root.BreadcrumbArray.length-1].Naziv}}</li>
 		</ol>
 		  
-		{{$root.User.Ime}} {{$root.User.Prezime}} | #{{$root.User.SifraZaposlenika}}
+		<span class="userInfoDivSpan">
+		{{$root.User.Ime}} {{$root.User.Prezime}} | #{{$root.User.SifraZaposlenika}} | {{$root.User.Valuta}} 
+		</span>
 	</div>
 
-	<div class="container noviRacunContainer" ng-if="$root.User != undefined">
-    	<a href="#!/dodaj_racun" class="text-reset text-decoration-none">Novi račun <i class="fas fa-receipt"></i> <i class="fas fa-plus"></i></a>
+	<div class="container noviRacunContainer" ng-if="$root.User != undefined" onclick="window.location='#!/dodaj_racun';">
+    	Novi račun <i class="fas fa-receipt"></i> <i class="fas fa-plus"></i>
 	</div>
 
 	<div class="container-fluid px-5" style="margin-top: 60px">

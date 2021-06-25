@@ -80,13 +80,30 @@ oModul.run(['$rootScope', '$http', '$location', 'GeneralServices', function ($ro
 		}
 	}, false);
 
+	$rootScope.ShowAlert = function(message = null)
+	{
+		$rootScope.AlertMessage = message;
+		if(message == null)
+		{
+			$rootScope.AlertMessage = "Došlo je do pogreške!";
+			$('.alertDiv').addClass("bg-danger");	
+		}
+
+		$('.alertDiv').addClass("visible");
+		setTimeout(function() 
+		{
+			$('.alertDiv').removeClass("visible");
+			$('.alertDiv').removeClass("bg-danger");
+		}, 2000);
+	}
+
 }]);
 
 oModul.factory('ResponseHandler', function($rootScope, $location)
 {
 	var factory = {};
 
-	factory.Handle = function(response, message = null)
+	factory.Handle = function(response)
 	{
 		switch(response.status)
 		{
@@ -96,7 +113,7 @@ oModul.factory('ResponseHandler', function($rootScope, $location)
 				break;
 				
 			case 403:
-				$location.url("/pregled_racuna");
+				$location.url("/");
 				break;
 		}
 	}
@@ -194,7 +211,7 @@ oModul.config(function($routeProvider){
 	});
 });
 
-oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window){
+oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window, GeneralServices){
 
 	if($rootScope.User != undefined)
 	{
@@ -203,19 +220,16 @@ oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window)
 
 	$scope.User = {};
 
-	$scope.User.Email = undefined;
-	$scope.User.Lozinka = undefined;
+	$scope.User.Email = "";
+	$scope.User.Lozinka = "";
 
 	$scope.Submit= function()
 	{
-		$http.post("http://localhost/KV2/Login", $scope.User)
-		.then(function(response) {
-			if(response.data == '')
-			{
-				console.log('Neuspjela prijava');
-			}
-			else
-			{
+		$scope.User.Errors = GeneralServices.ValidateForm($scope.User);
+		if($scope.User.Errors.length == 0)
+		{
+			$http.post("http://localhost/KV2/Login", $scope.User)
+			.then(function(response) {
 				$rootScope.User = response.data;
 				localStorage.setItem("Tema", $rootScope.User.Tema);
 				localStorage.setItem("Valuta", $rootScope.User.Valuta);
@@ -224,43 +238,219 @@ oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window)
 				localStorage.setItem("SifraZaposlenika", $rootScope.User.SifraZaposlenika);
 				$rootScope.Config = {headers:{'SifraZaposlenika': localStorage.getItem("SifraZaposlenika")}};
 				$window.location.href = '/KV2/#!/';
-			}
-		});
+			}, function(response){
+				if(response.status == 401)
+				{
+					$scope.User.Errors.push({'Atribut': 'Lozinka', 'Poruka': `Neispravna lozinka`});
+				}
+				else if(response.status == 404)
+				{
+					$scope.User.Errors.push({'Atribut': 'Email', 'Poruka': `Zaposlenik ne postoji`});
+				}
+			});
+		}
 	}
 });
 
-oModul.controller('homeKontroler', function($rootScope, $scope, $http, $window){
+oModul.controller('homeKontroler', function($rootScope, $scope, $http, ResponseHandler){
 
-	var ctx = $('#myChart');
+	$rootScope.SetBreadcrumb([], []);
 
-	const data = {
-		labels: [
-		  'Red',
-		  'Green',
-		  'Yellow',
-		  'Grey',
-		  'Blue'
-		],
+	function groupBy(xs, key) {
+		return xs.reduce(function(rv, x) {
+		  (rv[x[key]] = rv[x[key]] || []).push(x);
+		  return rv;
+		}, {});
+	};
+
+	function randomShadeRed()
+	{
+		let min = 150;
+		let max = 255;
+		let R = Math.floor(Math.random() * (max - min + 1)) + min;
+		let A =	Math.random() * (0.8 - 0.5) + 0.5;
+
+		return 'rgba('+ R +', 0, 0, ' + A +')';
+	} 
+
+	$http.get("http://localhost/KV2/Statistika", $rootScope.ConfigSettings())
+	.then(function(response){
+		let Statistika = response.data;	
+
+		//#region Racuni po ukupnom iznosu
+		let TotalAmountGroups = [0,0,0,0,0];
+		let Counter = Statistika.Racuni.length;
+		
+		Statistika.Racuni.forEach(function(value)
+		{
+			$http.get(`https://api.exchangerate.host/convert?from=${value.SifraValute}&to=${$rootScope.User.Valuta}`)
+			.then(function(response){
+				Counter--;
+				value.UkupanIznosConverted = parseFloat((response.data.result * value.UkupanIznos).toFixed(2));
+
+				if(value.UkupanIznosConverted <= 50)
+				{
+					TotalAmountGroups[0]++;
+				}
+				else if(value.UkupanIznosConverted <= 100)
+				{
+					TotalAmountGroups[1]++;
+				}
+				else if(value.UkupanIznosConverted <= 500)
+				{
+					TotalAmountGroups[2]++;
+				}
+				else if(value.UkupanIznosConverted <= 1000)
+				{
+					TotalAmountGroups[3]++;
+				}
+				else
+				{
+					TotalAmountGroups[4]++;
+				}
+
+				if (Counter == 0) 
+				{
+					const data1 = {
+						labels: ['0-50', '51-100', '101-500', '501-1000', '1000+'],
+						datasets: [{
+						  label: 'My First Dataset',
+						  data: TotalAmountGroups,
+						  backgroundColor: [
+							'rgb(255, 99, 132)',
+							'rgb(75, 192, 192)',
+							'rgb(255, 205, 86)',
+							'rgb(201, 203, 207)'
+						  ]}]
+					};
+
+					const config1 = {
+						type: 'polarArea',
+						data: data1,
+						options: {}
+					};
+
+					var ctx = $('#Racuni1');
+
+					var myChart = new Chart(ctx, config1);
+				}				
+			})
+		})	
+		
+		//#endregion
+
+		//#region Racuni po valutama
+		
+		let labels1 = [];
+		let dataset1 = [];
+		for(attr in groupBy(Statistika.Racuni, 'SifraValute'))
+		{
+			labels1.push(attr);
+			dataset1.push(groupBy(Statistika.Racuni, 'SifraValute')[attr].length);
+		}
+
+		const data2 = {
+			labels: labels1,
+			datasets: [{
+			  label: 'My First Dataset',
+			  data: dataset1,
+			  backgroundColor: [
+				'rgb(255, 99, 132)',
+				'rgb(54, 162, 235)',
+				'rgb(255, 205, 86)'
+			  ],
+			  hoverOffset: 4
+			}]
+		};
+
+		const config2 = {
+			type: 'doughnut',
+			data: data2,
+			options: {
+				cutout: '65%'
+			}
+		};
+
+		var ctx2 = $('#Racuni2');
+
+		var myChart2 = new Chart(ctx2, config2);
+
+		//#endregion
+
+		//#region Racuni po datumima
+
+		let DaysFrom = [0, 1, 2, 3, 4, 5, 6];
+		let data3 = [0, 0, 0, 0, 0, 0, 0];
+		let labels3 = new Array(7); //dani u tjednu
+
+		Statistika.Racuni.map(x => x.Datum).forEach(function(RacunDate)
+		{			
+			DaysFrom.forEach(function(value, index)
+			{
+				let CurrentDate = new Date();
+				RacunDate = new Date(RacunDate);
+
+				CurrentDate.setDate(CurrentDate.getDate() - DaysFrom[index]);
+				switch(CurrentDate.getDay())
+				{
+					case 0:
+						labels3[index] = "Nedjelja";
+						break;
+					case 1:
+						labels3[index] = "Ponedjeljak";
+						break;
+					case 2:
+						labels3[index] = "Utorak";
+						break;
+					case 3:
+						labels3[index] = "Srijeda";
+						break;
+					case 4:
+						labels3[index] = "Četvrtak";
+						break;
+					case 5:
+						labels3[index] = "Petak";
+						break;
+					case 6:
+						labels3[index] = "Subota";
+						break;
+
+				}
+
+				CurrentDate = CurrentDate.getFullYear() + '-' + (CurrentDate.getMonth()+1) + '-' + CurrentDate.getDate();
+				RacunDate = RacunDate.getFullYear() + '-' + (RacunDate.getMonth()+1) + '-' + RacunDate.getDate();
+
+				if(RacunDate == CurrentDate)
+				{
+					data3[index]++;
+				}
+			})
+		})
+		labels3[0] += " (danas)";
+		labels3[1] += " (jučer)";
+
+		const dataznj = {
+		labels: labels3.reverse(),
 		datasets: [{
-		  label: 'My First Dataset',
-		  data: [11, 16, 7, 3, 14],
-		  backgroundColor: [
-			'rgb(255, 99, 132)',
-			'rgb(75, 192, 192)',
-			'rgb(255, 205, 86)',
-			'rgb(201, 203, 207)',
-			'rgb(54, 162, 235)'
-		  ]
-		}]
-	  };
+			label: 'Količina izdanih računa',
+			data: data3.reverse(),
+			fill: false,
+			borderColor: 'rgb(75, 192, 192)',
+			tension: 0.4
+			}]
+		};
 
-	const config = {
-		type: 'polarArea',
-		data: data,
-		options: {}
-	  };
+		const config3 = { type: 'line', data: dataznj};
 
-	  var myChart = new Chart(ctx, config);
+		var ctx3 = $('#Racuni3');
+
+		var myChart3 = new Chart(ctx3, config3);
+
+		//#endregion
+		
+	}, function(response){
+		ResponseHandler.Handle(response)
+	})
 });
 
 oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, NgTableParams, GeneralServices, RacuniFilterSerivice, ResponseHandler){
@@ -275,6 +465,7 @@ oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, 
 	{
 		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
 		$scope.tableParams.reload();
+		$scope.FilterObject.SifreZaposlenikaUnique = [...new Set($scope.tableParams._settings.dataset.map(x => x.SifraZaposlenika))];
 	}
 
 	GeneralServices.GetExchangeRates().then(function(ExchangeRates){
@@ -305,6 +496,7 @@ oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, 
 			$scope.FilterObject.PrikaziNesortirane = true;
 
 			$scope.FilterObject.SifraRacunaFilter = '';
+			$scope.FilterObject.SifraZaposlenikaFilter = '';
 
 			$scope.FilterObject.IznosMinValue = 0;
 			$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
@@ -314,6 +506,8 @@ oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, 
 
 			$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
 			$scope.tableParams.reload();
+			$scope.FilterObject.SifreZaposlenikaUnique = [...new Set($scope.tableParams._settings.dataset.map(x => x.SifraZaposlenika))];
+
 		}, function errorCallback(response) {
 			ResponseHandler.Handle(response);
 		});	
@@ -331,6 +525,12 @@ oModul.controller('pregledJednogRacunaKontroler', function($rootScope, $scope, $
 		$http.get(`https://api.exchangerate.host/convert?from=${$scope.Racun.SifraValute}&to=${$rootScope.User.Valuta}`)
 		.then(function(response){
 			$scope.Racun.UkupanIznosConverted = parseFloat((response.data.result * $scope.Racun.UkupanIznos).toFixed(2));
+			$scope.Racun.Stavke.forEach(function(value){
+				value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
+				value.UkupnaCijenaConverted = parseFloat((response.data.result * value.UkupnaCijena).toFixed(2));
+				console.log(value);
+			})
+
 		})
 	  }, function errorCallback(response) {
 		ResponseHandler.Handle(response);
@@ -373,6 +573,7 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 			$http.get(`https://api.exchangerate.host/convert?from=${value.SifraValute}&to=${$scope.NoviRacun.SifraValute}`)
 			.then(function(response){
 				value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
+				value.UkupnaCijenaConverted = parseFloat((response.data.result * value.UkupnaCijena).toFixed(2));
 				$scope.PromijeniUkupnuCijenu(value);
 			})
 		})
@@ -414,11 +615,12 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 			Naziv: Artikl.Naziv,
 			Opis:  Artikl.Opis,
 			JedinicaMjere: Artikl.JedinicaMjere,
-			JedinicnaCijena: Artikl.JedinicnaCijena,
+			JedinicnaCijena: Artikl.JedinicnaCijenaConverted,
 			Slika: Artikl.Slika,
 			Kategorija: Artikl.Kategorija,
 			SifraValute: Artikl.SifraValute,
-			JedinicnaCijenaConverted: Artikl.JedinicnaCijenaConverted
+			JedinicnaCijenaConverted: Artikl.JedinicnaCijenaConverted,
+			UkupnaCijenaConverted: Artikl.JedinicnaCijenaConverted
 		}
 
 		$scope.NoviRacun.Stavke.push(novaStavka);
@@ -429,12 +631,12 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 	{
 		if(Stavka != null)
 		{
-			Stavka.UkupnaCijena = parseFloat((Stavka.Kolicina * Stavka.JedinicnaCijenaConverted).toFixed(2));
+			Stavka.UkupnaCijenaConverted = parseFloat((Stavka.Kolicina * Stavka.JedinicnaCijenaConverted).toFixed(2));
 		}
 
 		$scope.NoviRacun.UkupanIznos = 0.00;
 		$scope.NoviRacun.Stavke.forEach(function(value){
-			$scope.NoviRacun.UkupanIznos += value.UkupnaCijena;
+			$scope.NoviRacun.UkupanIznos += value.UkupnaCijenaConverted;
 		})
 		$scope.NoviRacun.UkupanIznos = parseFloat($scope.NoviRacun.UkupanIznos).toFixed(2);
 	}
@@ -455,49 +657,46 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 	$scope.UkloniStavku = function(Stavka)
 	{
 		$scope.NoviRacun.Stavke = $scope.NoviRacun.Stavke.filter(stavka => stavka.SifraArtikla != Stavka.SifraArtikla);
+		$scope.PromijeniUkupnuCijenu();
 	}
 
 	$scope.Submit = function()
 	{
-		$scope.NoviRacun.Stavke.forEach(function(Stavka){
-			if(Stavka.Kolicina != undefined)
-			{
-				$http.post("http://localhost/KV2/Racuni", {
-				'SifraZaposlenika': $rootScope.User.SifraZaposlenika,
-				'UkupanIznos': $scope.NoviRacun.UkupanIznos,
-				'Datum': $scope.Datum,
-				'SifraValute': $scope.NoviRacun.SifraValute
-				}, $rootScope.ConfigSettings())
-				.then(function() {
+		$http.post("http://localhost/KV2/Racuni", {
+		'SifraZaposlenika': $rootScope.User.SifraZaposlenika,
+		'UkupanIznos': $scope.NoviRacun.UkupanIznos,
+		'Datum': $scope.Datum,
+		'SifraValute': $scope.NoviRacun.SifraValute
+		}, $rootScope.ConfigSettings())
+		.then(function() {
 
-					$http.get("http://localhost/KV2/Racuni?SifraZaposlenika=" + localStorage.getItem("SifraZaposlenika"), 
-					$rootScope.ConfigSettings())
-					.then(function(response) {
+			$http.get("http://localhost/KV2/Racuni?SifraZaposlenika=" + localStorage.getItem("SifraZaposlenika"), 
+			$rootScope.ConfigSettings())
+			.then(function(response) {
 
-						let BrojStavki = $scope.NoviRacun.Stavke.length;
-						$scope.NoviRacun.Stavke.forEach(function(value){
-					
-							$http.post("http://localhost/KV2/Stavke", {
-								'SifraArtikla': value.SifraArtikla,
-								'Kolicina': value.Kolicina,
-								'JedinicnaCijenaStavke': value.JedinicnaCijena,
-								'UkupnaCijena': value.UkupnaCijena,
-								'SifraRacuna': response.data
-							}, $rootScope.ConfigSettings())
-							.then(function() {
-								BrojStavki--;
-								if(BrojStavki == 0)
-								{
-									//Ako su sve stavke spremljene vracamo se na pregled racuna
-									$window.location.href = '/KV2/#!/pregled_racuna';
-								}
-							});
-				
-						})
+				let BrojStavki = $scope.NoviRacun.Stavke.length;
+				$scope.NoviRacun.Stavke.forEach(function(value){
+			
+					$http.post("http://localhost/KV2/Stavke", {
+						'SifraArtikla': value.SifraArtikla,
+						'Kolicina': value.Kolicina,
+						'JedinicnaCijenaStavke': value.JedinicnaCijenaConverted,
+						'UkupnaCijena': value.UkupnaCijenaConverted,
+						'SifraRacuna': response.data
+					}, $rootScope.ConfigSettings())
+					.then(function() {
+						BrojStavki--;
+						if(BrojStavki == 0)
+						{
+							//Ako su sve stavke spremljene vracamo se na pregled racuna
+							$window.location.href = '/KV2/#!/pregled_racuna';
+							$rootScope.ShowAlert(`Račun ${response.data} dodan`);
+						}
 					});
-				});
-			}
-		})		
+		
+				})
+			});
+		});		
 	}	  
 });
 
@@ -513,6 +712,7 @@ oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http
 	{
 		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
 		$scope.tableParams.reload();
+		$scope.FilterObject.SifreZaposlenikaUnique = [...new Set($scope.tableParams._settings.dataset.map(x => x.SifraZaposlenika))];
 	}
 
 	GeneralServices.GetExchangeRates().then(function(ExchangeRates){
@@ -544,6 +744,7 @@ oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http
 			$scope.FilterObject.PrikaziNesortirane = true;
 
 			$scope.FilterObject.SifraRacunaFilter = '';
+			$scope.FilterObject.SifraZaposlenikaFilter = '';
 
 			$scope.FilterObject.IznosMinValue = 0;
 			$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
@@ -553,6 +754,8 @@ oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http
 
 			$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
 			$scope.tableParams.reload();
+			$scope.FilterObject.SifreZaposlenikaUnique = [...new Set($scope.tableParams._settings.dataset.map(x => x.SifraZaposlenika))];
+
 		}, function errorCallback(response) {
 			ResponseHandler.Handle(response);
 		});
@@ -561,16 +764,19 @@ oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http
 
 	$scope.Storniraj = function(Racun)
 	{
-		Racun.Storniran = true;
-
-		$http.put("http://localhost/KV2/Racuni", {
-				'SifraRacuna' : Racun.SifraRacuna
-		},  $rootScope.ConfigSettings())
-		.then(function(response) {
-
-		}, function (response) {
-
-		});
+		var r = confirm("Jeste li sigurni da želite stornirati račun " + Racun.SifraRacuna);
+		if (r == true) 
+		{			
+			$http.put("http://localhost/KV2/Racuni", {
+					'SifraRacuna' : Racun.SifraRacuna
+			},  $rootScope.ConfigSettings())
+			.then(function(response) {
+				Racun.Storniran = true;
+				$rootScope.ShowAlert(`Račun ${Racun.SifraRacuna} storniran`);
+			}, function (response) {
+				$rootScope.ShowAlert();
+			});
+		}		
 	}
 
 });
@@ -583,22 +789,35 @@ oModul.controller('stornirajJedanRacunKontroler', function($rootScope, $scope, $
 	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + SifraRacuna, $rootScope.ConfigSettings())
 	.then(function(response) {
 	    $scope.Racun = response.data[0];
+
+		$http.get(`https://api.exchangerate.host/convert?from=${$scope.Racun.SifraValute}&to=${$rootScope.User.Valuta}`)
+		.then(function(response){
+			$scope.Racun.UkupanIznosConverted = parseFloat((response.data.result * $scope.Racun.UkupanIznos).toFixed(2));
+			$scope.Racun.Stavke.forEach(function(value){
+				value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
+				value.UkupnaCijenaConverted = parseFloat((response.data.result * value.UkupnaCijena).toFixed(2));
+			})
+
+		})
 	}, function(response) {
 		ResponseHandler.Handle(response);
 	});
 
 	$scope.Storniraj = function(Racun)
 	{
-		Racun.Storniran = true;
-
-		$http.put("http://localhost/KV2/Racuni", {
-				'SifraRacuna' : Racun.SifraRacuna
-		},  $rootScope.ConfigSettings())
-		.then(function(response) {
-
-		}, function() {
-
-		});
+		var r = confirm("Jeste li sigurni da želite stornirati račun " + Racun.SifraRacuna);
+		if (r == true) 
+		{
+			$http.put("http://localhost/KV2/Racuni", {
+					'SifraRacuna' : Racun.SifraRacuna
+			},  $rootScope.ConfigSettings())
+			.then(function(response) {
+				Racun.Storniran = true;
+				$rootScope.ShowAlert(`Račun ${Racun.SifraRacuna} storniran`);
+			}, function() {
+				$rootScope.ShowAlert();
+			});
+		}
 	}
 	  
 });
@@ -624,7 +843,7 @@ oModul.controller('pregledArtiklaKontroler', function($rootScope, $scope, $http,
 			{
 				value.JedinicnaCijenaConverted =  parseFloat((ExchangeRates[value.SifraValute] * value.JedinicnaCijena).toFixed(2));
 			})
-
+			
 			$scope.tableParams = new NgTableParams(
 			{
 				sorting: 
@@ -667,6 +886,7 @@ oModul.controller('pregledArtiklaKontroler', function($rootScope, $scope, $http,
 			$scope.FilterObject.UniqueKategorije = [...new Set($scope.tableParams._settings.dataset.map(a => a.Kategorija.Naziv))];
 		}, function errorCallback(response) {
 			ResponseHandler.Handle(response);
+			$rootScope.ShowAlert();
 		});
 	});
 
@@ -730,34 +950,37 @@ oModul.controller('dodajArtiklKontroler', function($rootScope, $scope, $http, Ge
 		$scope.NoviArtikl.Errors = GeneralServices.ValidateForm($scope.NoviArtikl);
 		if($scope.NoviArtikl.Errors.length == 0)
 		{
-			$http.post("http://localhost/KV2/Artikli", {
-				'SifraArtikla' : NoviArtikl.SifraArtikla,
-				'Naziv': NoviArtikl.Naziv,
-				'Opis': NoviArtikl.Opis,
-				'JedinicaMjere': NoviArtikl.JedinicaMjere,
-				'JedinicnaCijena': NoviArtikl.JedinicnaCijena.toFixed(2),
-				'SifraKategorije': NoviArtikl.Kategorija.SifraKategorije,
-				'SifraValute': NoviArtikl.SifraValute,
-				'Slika': NoviArtikl.Slika
-			}, $rootScope.ConfigSettings())
-			  .then(function(response) {
-			  	$('.customForm')[0].reset();
-				PostaviNoviArtikl();
-			  }, function(response) {
-				ResponseHandler.Handle(response);
+			var r = confirm("Jeste li sigurni da želite dodati artikl " + NoviArtikl.Naziv);
+			if (r == true) 
+			{
+				$http.post("http://localhost/KV2/Artikli", {
+					'Naziv': NoviArtikl.Naziv,
+					'Opis': NoviArtikl.Opis,
+					'JedinicaMjere': NoviArtikl.JedinicaMjere,
+					'JedinicnaCijena': NoviArtikl.JedinicnaCijena.toFixed(2),
+					'SifraKategorije': NoviArtikl.Kategorija.SifraKategorije,
+					'SifraValute': NoviArtikl.SifraValute,
+					'Slika': NoviArtikl.Slika
+				}, $rootScope.ConfigSettings())
+				.then(function() {
+					$('.customForm')[0].reset();
+					PostaviNoviArtikl();
+					$rootScope.ShowAlert(`Artikl ${NoviArtikl.Naziv} dodan`);
+				}, function(response) {
+					ResponseHandler.Handle(response);
 
-				if(response.status == 409)
-				{
-					$scope.NoviArtikl.Errors.push({'Atribut': response.data, 'Poruka': `Artikl s nazivom ${NoviArtikl.Naziv} već postoji`});
-				}
-			  });
+					if(response.status == 409)
+					{
+						$scope.NoviArtikl.Errors.push({'Atribut': response.data, 'Poruka': `Artikl s nazivom ${NoviArtikl.Naziv} već postoji`});
+					}
+				});
+			}
 		}
 		else
 		{
 			console.log('Invalid form');
-		}
+		}	
 	}
-
 });
  
 oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, GeneralServices, NgTableParams, ArtikliFilterSerivice, ResponseHandler){
@@ -886,30 +1109,36 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, G
 	$scope.Submit = function(Artikl)
 	{
 		Artikl.Errors = GeneralServices.ValidateForm(Artikl);
+		console.log(Artikl.Errors);
 		if(Artikl.Errors.length == 0)
-		{			
-			$http.put("http://localhost/KV2/Artikli", {
-				'SifraArtikla' : Artikl.SifraArtikla,
-				'Naziv': Artikl.Naziv,
-				'Opis': Artikl.Opis,
-				'JedinicaMjere': Artikl.JedinicaMjere,
-				'JedinicnaCijena': Artikl.JedinicnaCijena,
-				'SifraKategorije': Artikl.Kategorija.SifraKategorije,
-				'SifraValute': Artikl.SifraValute,
-				'Slika': Artikl.Slika
-			}, $rootScope.ConfigSettings())
-			.then(function() {
-				$('tr').removeClass('disabledRow'); //enables all rows
-				$('.customIconButton').prop('disabled', false);
-				$('.collapse').collapse('hide');
-			}, function (response) {
-				ResponseHandler.Handle(response);
+		{		
+			var r = confirm("Jeste li sigurni da želite urediti artikl " + Artikl.Naziv);
+			if (r == true) 
+			{	
+				$http.put("http://localhost/KV2/Artikli", {
+					'SifraArtikla' : Artikl.SifraArtikla,
+					'Naziv': Artikl.Naziv,
+					'Opis': Artikl.Opis,
+					'JedinicaMjere': Artikl.JedinicaMjere,
+					'JedinicnaCijena': Artikl.JedinicnaCijena,
+					'SifraKategorije': Artikl.Kategorija.SifraKategorije,
+					'SifraValute': Artikl.SifraValute,
+					'Slika': Artikl.Slika
+				}, $rootScope.ConfigSettings())
+				.then(function() {
+					$('tr').removeClass('disabledRow'); //enables all rows
+					$('.customIconButton').prop('disabled', false);
+					$('.collapse').collapse('hide');
+					$rootScope.ShowAlert(`Artikl ${Artikl.Naziv} ažuriran`);
+				}, function (response) {
+					ResponseHandler.Handle(response);
 
-				if(response.status == 409)
-				{
-					Artikl.Errors.push({'Atribut': response.data, 'Poruka': `Artikl s nazivom ${Artikl.Naziv} već postoji`});
-				}
-			});
+					if(response.status == 409)
+					{
+						Artikl.Errors.push({'Atribut': response.data, 'Poruka': `Artikl s nazivom ${Artikl.Naziv} već postoji`});
+					}
+				});
+			}
 		}
 		else
 		{
@@ -958,9 +1187,13 @@ oModul.controller('pregledZaposlenikaKontroler', function($rootScope, $scope, $h
 		$scope.FilterObject.EmailFilter = '';
 		$scope.FilterObject.PrikaziAdmine = true;
 		$scope.FilterObject.PrikaziZaposlenike = true;
+		$scope.FilterObject.PrikaziAktivne = true;
+		$scope.FilterObject.PrikaziDeaktivirane = false;
 
 		$scope.tableParams = ZaposleniciFilterService.SetNgTable($scope);
 		$scope.tableParams.reload();
+	}, function(response){
+		ResponseHandler.Handle(response);
 	})
 });
 
@@ -994,39 +1227,69 @@ oModul.controller('urediZaposlenikeKontroler', function($rootScope, $scope, $htt
 		$scope.FilterObject.EmailFilter = '';
 		$scope.FilterObject.PrikaziAdmine = true;
 		$scope.FilterObject.PrikaziZaposlenike = true;
+		$scope.FilterObject.PrikaziAktivne = true;
+		$scope.FilterObject.PrikaziDeaktivirane = false;
 
 		$scope.tableParams = ZaposleniciFilterService.SetNgTable($scope);
 		$scope.tableParams.reload();
+	}, function(response){
+		ResponseHandler.Handle(response);
 	})
 
 	$scope.AdminChange = function(Zaposlenik)
-	{
-		if(Zaposlenik.Admin == 1) {Zaposlenik.Admin = '0';}
-		else {Zaposlenik.Admin = '1';}
-
-		$scope.UrediZaposlenika(Zaposlenik);
+	{		
+		$scope.UrediZaposlenika(Zaposlenik, 'Admin' + Zaposlenik.Admin);
 	}
 
 	$scope.DeaktivirajRacun = function(Zaposlenik)
 	{
-		Zaposlenik.Deaktiviran = '1';
-
-		$scope.UrediZaposlenika(Zaposlenik);
+		$scope.UrediZaposlenika(Zaposlenik, 'Deaktiviran');
 	}
 
-	$scope.UrediZaposlenika = function(Zaposlenik)
+	$scope.UrediZaposlenika = function(Zaposlenik, Atribut)
 	{
-		$http.put("http://localhost/KV2/Zaposlenici", {
-			'SifraZaposlenika': Zaposlenik.SifraZaposlenika,
-			'Ime': Zaposlenik.Ime,
-			'Prezime': Zaposlenik.Prezime,
-			'Tema': Zaposlenik.Tema,
-			'Admin': Zaposlenik.Admin,
-			'Deaktiviran': Zaposlenik.Deaktiviran,
-			'Valuta': $rootScope.User.Valuta},
-			$rootScope.ConfigSettings())
-		.then(function(){
-		})
+		console.log(Atribut)
+		if(Atribut == 'Deaktiviran')
+		{
+			var r = confirm("Jeste li sigurni da želite deaktivirati korisnika " + Zaposlenik.Ime + " " + Zaposlenik.Prezime);
+		}
+		else if(Atribut == 'Admin1')
+		{
+			var r = confirm("Jeste li sigurni da želite ukloniti administratorska prava korisniku " + Zaposlenik.Ime + " " + Zaposlenik.Prezime);
+		}
+		else if(Atribut == 'Admin0')
+		{
+			var r = confirm("Jeste li sigurni da želite dodijeliti administratorska prava korisniku " + Zaposlenik.Ime + " " + Zaposlenik.Prezime);
+		}	
+		
+		if (r == true) 
+		{
+			if(Atribut == 'Deaktiviran')
+			{
+				Zaposlenik.Deaktiviran = '1';
+			}
+			else
+			{
+				if(Zaposlenik.Admin == 1) {Zaposlenik.Admin = '0';}
+				else {Zaposlenik.Admin = '1';}
+			}
+
+			$http.put("http://localhost/KV2/Zaposlenici", {
+				'SifraZaposlenika': Zaposlenik.SifraZaposlenika,
+				'Ime': Zaposlenik.Ime,
+				'Prezime': Zaposlenik.Prezime,
+				'Tema': Zaposlenik.Tema,
+				'Admin': Zaposlenik.Admin,
+				'Deaktiviran': Zaposlenik.Deaktiviran,
+				'Valuta': $rootScope.User.Valuta},
+				$rootScope.ConfigSettings())
+			.then(function(){
+				$rootScope.ShowAlert(`Zaposlenik ${Zaposlenik.Ime} ${Zaposlenik.Prezime} ažuriran`);			
+				
+			}, function(response){
+				ResponseHandler.Handle(response);
+			})
+		}
 	}
 })
 
@@ -1041,26 +1304,27 @@ oModul.controller('urediProfilKontroler', function($rootScope, $scope, $http, Ge
 
 	$scope.Submit = function()
 	{
-		$rootScope.User.Errors = GeneralServices.ValidateForm($rootScope.User);
+		var r = confirm("Jeste li sigurni?");
+		if (r == true) 
+		{
+			$rootScope.User.Errors = GeneralServices.ValidateForm($rootScope.User);
 
-		if($rootScope.User.Errors.length == 0)
-		{
-			$http.put("http://localhost/KV2/Zaposlenici", {
-				'SifraZaposlenika': $rootScope.User.SifraZaposlenika,
-				'Ime': $rootScope.User.Ime,
-				'Prezime': $rootScope.User.Prezime,
-				'Tema': $rootScope.User.Tema,
-				'Admin': $rootScope.User.Admin,
-				'Deaktiviran': $rootScope.User.Deaktiviran, 
-				'Valuta': $rootScope.User.Valuta},
-				$rootScope.ConfigSettings())
-			.then(function(){
-				localStorage.setItem('Valuta', $rootScope.User.Valuta);
-			})
-		}
-		else
-		{
-			
+			if($rootScope.User.Errors.length == 0)
+			{
+				$http.put("http://localhost/KV2/Zaposlenici", {
+					'SifraZaposlenika': $rootScope.User.SifraZaposlenika,
+					'Ime': $rootScope.User.Ime,
+					'Prezime': $rootScope.User.Prezime,
+					'Tema': $rootScope.User.Tema,
+					'Admin': $rootScope.User.Admin,
+					'Deaktiviran': $rootScope.User.Deaktiviran, 
+					'Valuta': $rootScope.User.Valuta},
+					$rootScope.ConfigSettings())
+				.then(function(){
+					localStorage.setItem('Valuta', $rootScope.User.Valuta);
+					$rootScope.ShowAlert(`Profil ažuriran`);
+				})
+			}
 		}
 	}
 });
@@ -1145,7 +1409,7 @@ oModul.factory('GeneralServices', function($rootScope, $http)
 {
 	var factory = {};
 
-	factory.ValidateForm = function(Object = null)
+	factory.ValidateForm = function(Object)
 	{
 		let Errors = [];
 
@@ -1153,7 +1417,7 @@ oModul.factory('GeneralServices', function($rootScope, $http)
 		{
 			if(Object[prop] == '' || Object[prop] === null)
 			{
-				if(prop != 'Slika')
+				if(prop != 'Slika' && prop != 'Errors')
 				{
 					Errors.push({'Atribut': prop, 'Poruka': 'Polje ne može biti prazno!'})
 				}
@@ -1161,7 +1425,10 @@ oModul.factory('GeneralServices', function($rootScope, $http)
 			
 			if(Object[prop] === undefined)
 			{
-				Errors.push({'Atribut': prop, 'Poruka': 'Neispravan unos!'})
+				if(prop != 'Slika' && prop != 'Errors')
+				{
+					Errors.push({'Atribut': prop, 'Poruka': 'Neispravan unos!'})
+				}
 			}
 		}
 
@@ -1249,6 +1516,12 @@ oModul.factory('RacuniFilterSerivice', function()
 		{
 			SortiraniRacuni = SortiraniRacuni.filter(x =>
 				x.SifraRacuna.toString().includes(scope.FilterObject.SifraRacunaFilter.toString()))
+		}
+
+		if(scope.FilterObject.SifraZaposlenikaFilter != '')
+		{
+			SortiraniRacuni = SortiraniRacuni.filter(x =>
+				x.SifraZaposlenika.toString().includes(scope.FilterObject.SifraZaposlenikaFilter.toString()))
 		}
 
 		SortiraniRacuni = SortiraniRacuni.filter(x =>
@@ -1359,6 +1632,19 @@ oModul.factory('ZaposleniciFilterService', function()
 		{
 			SortiraniZaposlenici = SortiraniZaposlenici.filter(x =>
 				x.Admin == true)
+		}
+
+		if(!scope.FilterObject.PrikaziAktivne)
+		{
+			console.log(scope.FilterObject);
+			SortiraniZaposlenici = SortiraniZaposlenici.filter(x =>
+				x.Deaktiviran == true)
+		}
+
+		if(!scope.FilterObject.PrikaziDeaktivirane)
+		{
+			SortiraniZaposlenici = SortiraniZaposlenici.filter(x =>
+				x.Deaktiviran == false)
 		}
 
 		scope.tableParams._settings.dataset = SortiraniZaposlenici;

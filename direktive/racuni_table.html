@@ -1,43 +1,50 @@
-<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
-    Button with data-bs-target
+<button class="customButton" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
+    Filtriranje<i class="fas fa-caret-down rotate"></i>
 </button>
 
 <div class="collapse" id="collapseFiltriranje">
-	<div>
-		<div class="d-flex justify-content-center align-items-center">
+	<div class="d-flex justify-content-evenly align-items-center selectDiv mt-3">
+		<label>
 			<input type="checkbox" class="mx-0" ng-model="filterObjectParameter.PrikaziStornirane" ng-change="filterChangeParameter()">
-			PRIKAŽI STORNIRANE
+		PRIKAŽI STORNIRANE</label>
+		
+		<label>
 			<input type="checkbox" ng-model="filterObjectParameter.PrikaziNesortirane" ng-change="filterChangeParameter()">
-			PRIKAŽI NESTORNIRANE
-		</div>
-
-		<div class="d-flex justify-content-center">
-			<input type="text" placeholder="Šifra računa" list="SifreRacuna" 
-			ng-model="filterObjectParameter.SifraRacunaFilter" ng-change="filterChangeParameter()">
-
-			<datalist id="SifreRacuna">
-				<option ng-repeat="Racun in ngTableParamsParameter._settings.dataset" >{{Racun.SifraRacuna}} </option>
-			</datalist>
-
-		</div>
-
-		<div class="d-flex justify-content-between">
-			<span id="IznosMinValue" class="SliderValue">{{filterObjectParameter.IznosMinValue}}</span>
-			<span>IZNOS</span>
-			<span id="IznosMaxValue" class="SliderValue">{{filterObjectParameter.IznosMaxValue}}</span>
-		</div>
-		<div id="slider-range-iznos"></div>
-
-		<div class="d-flex justify-content-between">
-			<span id="StavkeMinValue" class="SliderValue">{{filterObjectParameter.StavkeMinValue}}</span>
-			<span>BROJ STAVKI</span>
-			<span id="StavkeMaxValue" class="SliderValue">{{filterObjectParameter.StavkeMaxValue}}</span>
-		</div>
-		<div id="slider-range-stavke"></div>
+		PRIKAŽI NESTORNIRANE</label>
 	</div>
+
+	<div class="d-flex justify-content-center">
+		<input type="text" placeholder="Šifra računa" list="SifreRacuna" 
+		ng-model="filterObjectParameter.SifraRacunaFilter" ng-change="filterChangeParameter()">
+		<datalist id="SifreRacuna">
+			<option ng-repeat="Racun in ngTableParamsParameter._settings.dataset">{{Racun.SifraRacuna}} </option>
+		</datalist>
+	</div>
+
+	<div class="d-flex justify-content-center">
+		<input type="text" placeholder="Šifra zaposlenika" list="SifreZaposlenika" 
+		ng-model="filterObjectParameter.SifraZaposlenikaFilter" ng-change="filterChangeParameter()">
+		<datalist id="SifreZaposlenika">
+			<option ng-repeat="SifraZaposlenika in filterObjectParameter.SifreZaposlenikaUnique">{{SifraZaposlenika}}</option>
+		</datalist>
+	</div>
+
+	<div class="d-flex justify-content-between">
+		<span id="IznosMinValue" class="SliderValue">{{filterObjectParameter.IznosMinValue}}</span>
+		<span class="SliderValue">IZNOS</span>
+		<span id="IznosMaxValue" class="SliderValue">{{filterObjectParameter.IznosMaxValue}}</span>
+	</div>
+	<div id="slider-range-iznos" class="slider-range"></div>
+
+	<div class="d-flex justify-content-between">
+		<span id="StavkeMinValue" class="SliderValue">{{filterObjectParameter.StavkeMinValue}}</span>
+		<span class="SliderValue">BROJ STAVKI</span>
+		<span id="StavkeMaxValue" class="SliderValue">{{filterObjectParameter.StavkeMaxValue}}</span>
+	</div>
+	<div id="slider-range-stavke" class="slider-range"></div>
 </div>
 
-<div class="row row-cols-1 row-cols-md-3" style="justify-content: center;">
+<div class="row row-cols-1 row-cols-md-3 mt-5" style="justify-content: center;">
 
 	<table ng-table="ngTableParamsParameter" class="table table-hover">
 		<tr ng-if="tableParams._settings.dataset != 0" ng-repeat="Racun in $data">

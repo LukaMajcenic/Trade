@@ -42,17 +42,24 @@
 	color: var(--customRed);
 	padding: 5px;
 	border-radius: 50%;
+	opacity: 0.85;
 }
 
 .customIconButtonRed i:hover
 {
 	transform: scale(1.1);
-    background-color: rgb(255 0 0 / 10%);
+	opacity: 1;
 }
 
 .customIconButtonForeground
 {
     color: var(--foreground);
+	opacity: 0.85;
+}
+
+.customIconButtonForeground:hover
+{
+	opacity: 1;
 }
 
 .customButton, .customButtonInverted

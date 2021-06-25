@@ -24,7 +24,7 @@ try
         || $_SESSION['SifraZaposlenika'] != $_SERVER['HTTP_SIFRAZAPOSLENIKA'])
         {       
             http_response_code(401);
-            die();
+            exit();
         }
         else if(in_array($_SERVER['HTTP_PAGEURL'], $AdminOnlyPages))
         {
@@ -36,6 +36,7 @@ try
                 if($oRow['AdminX'] == 0)
                 {
                     http_response_code(403);
+                    exit();
                 }
             }
         }
