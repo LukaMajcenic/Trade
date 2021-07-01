@@ -1,7 +1,22 @@
-<div class="d-flex justify-content-center">
-    <form class="customForm" ng-submit="Submit()">
+<div class="d-flex justify-content-end mt-n40px">
+    <button type="button" class="customButtonInverted me-1" onclick="window.location='#!/registracija';">
+        Registracija<i class="fas fa-external-link-square-alt"></i>
+    </button>
+    <button ng-if="$root.AnimationVisible" type="button" class="customButtonInverted" ng-click="$root.ChangeAnimation(false)">
+        Animacija<i class="far fa-stop-circle"></i>
+    </button>
+    <button ng-if="!$root.AnimationVisible" type="button" class="customButtonInverted" ng-click="$root.ChangeAnimation(true)">
+        Animacija<i class="far fa-play-circle"></i>
+    </button>
+</div>
 
-        <div class="form-floating mt-3">
+<div class="d-flex justify-content-center">
+    <form class="customForm loginForm mt-5" ng-submit="Submit()">
+        <div class="d-flex justify-content-center mb-3">
+            <logo></logo>
+        </div>
+
+        <div class="form-floating">
             <input type="text" class="form-control" id="floatingEmail" placeholder=" " ng-model="User.Email">
             <label for="floatingEmail">Email</label>
             <h3 class="validationLabel" ng-repeat="Error in User.Errors" ng-if="Error.Atribut == 'Email'">
@@ -18,9 +33,9 @@
         </div>
 
         <div class="d-flex mt-3">
-            <button type="submit" class="customButton me-1">PRIJAVI SE<i class="fas fa-sign-in-alt"></i></button>
-            
-            <button type="reset" class="customButtonInverted ms-1">OČISTI INPUTE<i class="fas fa-ban"></i></button>
+            <button type="submit" class="customButton w-100"><b>PRIJAVI SE</b><i class="fas fa-sign-in-alt"></i></button>
         </div>
     </form>
 </div>
+
+<div class="testDiv"></div>

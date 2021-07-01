@@ -1,7 +1,3 @@
-<div class="d-flex customFlex">
-	<h4>DODAJ RAČUN</h4>
-</div>
-
 <div class="container receiptContainer font-monospace">
 
     <div class="d-flex justify-content-center">
@@ -19,7 +15,7 @@
             <tr>
                 <th>Sifra artikla</th>
                 <th class="w-50">Naziv</th>
-                <th>Kolicina</th>
+                <th>Količina</th>
                 <th>Jedinična cijena</th>
                 <th>Ukupna cijena</th>
                 <th></th>
@@ -30,11 +26,16 @@
             <tr ng-repeat-start="Stavka in NoviRacun.Stavke">
                 <td>{{Stavka.SifraArtikla}}</td>
                 <td>{{Stavka.Naziv}}</td>
-                <td><input ng-if="Stavka.JedinicaMjere == 'Komad'" value="{{Stavka.Kolicina}}" ng-model="Stavka.Kolicina" ng-if="Stavka.JedinicaMjere == 'Komad'"
+                <td>
+                    <input ng-if="Stavka.JedinicaMjere == 'Kg'" value="{{Stavka.Kolicina}}" ng-model="Stavka.Kolicina"
+                    ng-change="PromijeniUkupnuCijenu(Stavka)" type="number" min="0.001" step="0.001" class="w-100"
+                    onkeypress='return event.charCode == 44 || event.charCode == 46 || (event.charCode >= 48 && event.charCode <= 57)'>
+                    <input ng-if="Stavka.JedinicaMjere == 'Komad'" value="{{Stavka.Kolicina}}" ng-model="Stavka.Kolicina"
                     ng-change="PromijeniUkupnuCijenu(Stavka)" type="number" min="1" class="w-100"
-                    onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 48 && event.charCode <= 57"></td>
+                    onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 48 && event.charCode <= 57">
+                </td>
                 <td>{{Stavka.JedinicnaCijenaConverted}}</td>
-                <td>{{Stavka.UkupnaCijenaConverted}}</td>    
+                <td>{{Stavka.UkupnaCijenaConverted}}</td>
                 <td scope="col" class="align-middle text-center">
                     <button class="customIconButton customIconButtonForeground" data-bs-toggle="collapse" data-bs-target="#collapse{{Stavka.SifraArtikla}}" 
                     aria-expanded="false" aria-controls="collapse{{Stavka.SifraArtikla}}">
@@ -77,7 +78,7 @@
                     <button class="customButton novaStavkaButton mt-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
                         Nova stavka<i class="fas fa-plus-circle"></i>
                     </button>
-                    <button ng-click="Submit()" type="submit" class="customButton" ng-if="NoviRacun.Stavke.length != 0">
+                    <button ng-click="Submit()" type="submit" class="customButton" ng-if="NoviRacun.Stavke.length != 0 && Errors.length == 0">
                         DODAJ RAČUN<i class="fas fa-plus-circle"></i>
                     </button>
                 </td>
@@ -95,8 +96,12 @@
                     </h5>
                 </td>
             </tr>
-        </tfoot>        
+        </tfoot>
     </table>
+
+    <h3 class="validationLabel" ng-repeat="Error in Errors">
+        <i class="fas fa-exclamation-circle me-1"></i>{{Error}}
+    </h3>
 </div>
 
 <!-- Modal -->

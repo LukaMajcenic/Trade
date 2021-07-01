@@ -8,7 +8,7 @@ switch ($_SERVER['REQUEST_METHOD'])
 {
 	case 'GET':
 
-		$sQuery = "SELECT racuni.SifraValute, valute.NazivValute, UkupanIznos, Datum FROM racuni INNER JOIN valute ON racuni.SifraValute = valute.SifraValute";
+		$sQuery = "SELECT racuni.SifraValute, valute.NazivValute, UkupanIznos, Datum, SifraZaposlenika, Storniran FROM racuni INNER JOIN valute ON racuni.SifraValute = valute.SifraValute";
 
 		$oRecord = $oConnection->query($sQuery);
 		$data = Array();

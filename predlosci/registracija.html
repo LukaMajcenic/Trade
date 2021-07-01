@@ -1,0 +1,71 @@
+<div class="d-flex justify-content-end mt-n40px">
+    <button type="button" class="customButtonInverted me-1" onclick="window.location='#!/login';">
+        Login<i class="fas fa-external-link-square-alt"></i>
+    </button>
+    <button ng-if="$root.AnimationVisible" type="button" class="customButtonInverted" ng-click="$root.ChangeAnimation(false)">
+        Animacija<i class="far fa-stop-circle"></i>
+    </button>
+    <button ng-if="!$root.AnimationVisible" type="button" class="customButtonInverted" ng-click="$root.ChangeAnimation(true)">
+        Animacija<i class="far fa-play-circle"></i>
+    </button>
+</div>
+
+<div class="d-flex justify-content-center">
+    <form class="customForm w-100 loginForm mt-5" ng-submit="Submit()">
+
+        <div class="form-floating mt-3">
+            <input type="text" class="form-control" id="floatingIme" placeholder=" " ng-model="NewUser.Ime" autocomplete="off">
+            <label for="floatingIme">Ime</label>
+            <h3 class="validationLabel" ng-repeat="Error in NewUser.Errors" ng-if="Error.Atribut == 'Ime'">
+                <i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+            </h3>
+        </div>
+    
+        <div class="form-floating mt-3">
+            <input type="text" class="form-control" id="floatingPrezime" placeholder=" " ng-model="NewUser.Prezime" autocomplete="off">
+            <label for="floatingPrezime">Prezime</label>
+            <h3 class="validationLabel" ng-repeat="Error in NewUser.Errors" ng-if="Error.Atribut == 'Prezime'">
+                <i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+            </h3>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <div class="mt-3 me-2">
+                <img src="{{NewUser.ProfilnaSlika}}" class="urediProfilnaSlika">
+            </div>
+            <div class="form-floating mt-3 flex-grow-1">
+                <input type="text" class="form-control" id="floatingProfilnaSlika" placeholder=" " ng-model="NewUser.ProfilnaSlika" autocomplete="off">
+                <label for="floatingProfilnaSlika">Profilna slika</label>  
+            </div>
+        </div>
+
+        <div class="form-floating mt-3">
+            <input type="text" class="form-control" id="floatingEmail" placeholder=" " ng-model="NewUser.Email" autocomplete="off">
+            <label for="floatingEmail">Email</label>
+            <h3 class="validationLabel" ng-repeat="Error in NewUser.Errors" ng-if="Error.Atribut == 'Email'">
+                <i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+            </h3>
+        </div>
+
+        <div class="form-floating mt-3">
+            <input type="password" class="form-control" id="floatingLozinka" placeholder=" " ng-model="NewUser.Lozinka" autocomplete="off">
+            <label for="floatingLozinka">Lozinka</label>
+            <h3 class="validationLabel" ng-repeat="Error in NewUser.Errors" ng-if="Error.Atribut == 'Lozinka'">
+                <i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+            </h3>
+        </div>
+
+        <div class="form-floating mt-3" ng-if="NewUser.Lozinka.length != 0">
+            <input type="password" class="form-control" id="floatingLozinkaConfirm" placeholder=" " ng-model="NewUser.LozinkaConfirm" autocomplete="off">
+            <label for="floatingLozinkaConfirm">Potvrdi lozinku</label>
+            <h3 class="validationLabel" ng-repeat="Error in NewUser.Errors" ng-if="Error.Atribut == 'LozinkaConfirm'">
+                <i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
+            </h3>
+        </div>
+    
+        <div class="d-flex mt-3">
+            <button type="submit" class="customButton me-1">REGISTRIRAJ SE<i class="fas fa-user-plus"></i></button>
+        </div>
+    
+    </form>
+</div>

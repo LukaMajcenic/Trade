@@ -6,6 +6,7 @@
 nav
 {
 	background: var(--customRed);
+    background-image: radial-gradient(circle, #cc0000, #bf0001, #b20001, #a50001, #990000);
 }
 
 a:hover
@@ -35,6 +36,7 @@ a:hover
 	border: 0px; 
 	border-radius: 0%;
 	background-color: var(--backgroundDarker1);
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important;
 }
 
 .dropdown-item
@@ -106,7 +108,7 @@ a:hover
 
 .userInfoDiv
 {
-    background-color: var(--backgroundDarker2);
+    background-color: rgb(50 205 50 / 10%);
     color: var(--foreground);
     font-family: var(--bs-font-monospace);
     display: flex;
@@ -160,5 +162,10 @@ a:hover
     .noviRacunContainer 
     {
         margin-top: 0px;
+    }
+
+    .employeeCard
+    {
+        left: 0px;
     }
 }

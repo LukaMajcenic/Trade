@@ -1,7 +1,3 @@
-<div class="d-flex customFlex">
-	<h4>UREDI PROFIL</h4>
-</div>
-
 <form class="customForm" ng-submit="Submit()">
 
     <div class="form-floating mt-3">
@@ -19,6 +15,16 @@
 			<i class="fas fa-exclamation-circle me-1"></i>{{Error.Poruka}}
 		</h3>
 	</div>
+
+    <div class="d-flex justify-content-between">
+        <div class="mt-3 me-2">
+            <img src="{{$root.User.ProfilnaSlika}}" class="urediProfilnaSlika">
+        </div>
+        <div class="form-floating mt-3 flex-grow-1">
+		    <input type="text" class="form-control" id="floatingProfilnaSlika" placeholder=" " ng-model="$root.User.ProfilnaSlika" autocomplete="off">
+		    <label for="floatingProfilnaSlika">Profilna slika</label>  
+	    </div>
+    </div>
 
     <div class="form-floating mt-3" style="flex: 1;">
         <select class="form-select" id="floatingValuta" aria-label=" " ng-model="$root.User.Valuta">

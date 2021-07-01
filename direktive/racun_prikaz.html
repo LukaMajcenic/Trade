@@ -3,17 +3,37 @@
     <div class="d-flex justify-content-center align-items-center fw-bold fs-2">
         <logo></logo>
     </div>
-    <div class="d-flex justify-content-center">
+    <div class="d-flex">
         <button ng-if="racunParametar.Storniran == 0 && isAdminParametar == true" class="customButton customButtonStorniraj" 
         ng-click="stornirajParametar({param: racunParametar})">
             STORNIRAJ<i class="fas fa-undo"></i>
         </button>
+        <a href="#!/print/{{racunParametar.SifraRacuna}}"><button class="customButton py-1">
+            Ispiši<i class="fas fa-print"></i>
+        </button></a>
     </div>
     <div class="d-flex">
         <h5 class="pe-2">Šifra računa: </h5><h5 class="px-2 dashedBorder">{{racunParametar.SifraRacuna}}</h5>
     </div>
     <div class="d-flex">
-        <h5 class="pe-2">Šifra zaposlenika: </h5><h5 class="px-2 dashedBorder">{{racunParametar.SifraZaposlenika}}</h5>
+        <h5 class="pe-2">Šifra zaposlenika: </h5>
+        <h5 class="px-2 dashedBorder">
+            {{racunParametar.SifraZaposlenika}}<i class="far fa-question-circle question ms-1 fs-6"></i>
+            <div class="employeeCard">
+                <div class="logoDiv"><logo for-nav-menu="true"></logo></div>
+                <img src="{{racunParametar.Zaposlenik.ProfilnaSlika}}">
+                <div>{{racunParametar.Zaposlenik.Ime}}</div>
+                <div>{{racunParametar.Zaposlenik.Prezime}}</div>
+                <div class="infoDiv">
+                    <div class="w-100">Admin</div>
+                    {{racunParametar.Zaposlenik.Email}}                    
+                </div>
+                <div class="barcodeDiv">
+                    <i class="fas fa-barcode"></i>
+                    #{{racunParametar.Zaposlenik.SifraZaposlenika}}
+                </div>
+            </div>
+        </h5>
     </div>
     <div class="d-flex">
         <h5 class="pe-2">Datum: </h5><h5 class="px-2 dashedBorder">{{racunParametar.Datum}}</h5>
@@ -22,9 +42,9 @@
     <table class="w-100 racunTable">
         <thead>
             <tr>
-                <th>Sifra artikla</th>
+                <th>Šifra</th>
                 <th class="w-50">Naziv</th>
-                <th>Kolicina</th>
+                <th>Količina</th>
                 <th>Jedinična cijena</th>
                 <th>Ukupna cijena</th>
                 <th></th>

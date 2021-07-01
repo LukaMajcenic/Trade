@@ -1,0 +1,57 @@
+
+<div class="d-flex justify-content-center align-items-center fw-bold fs-2 printDiv" style="margin-top: 50%; transform: scale(3.5);">        
+    <logo></logo>
+</div>
+
+<div ng-repeat="Racun in Racuni" class="bg-white font-monospace printDiv position-relative" >
+    <div class="d-flex justify-content-center align-items-center fw-bold fs-2">
+        <logo></logo>
+    </div>
+    <div class="d-flex">
+        <h5 class="pe-2">Šifra računa: </h5><h5 class="px-2 dashedBorder">{{Racun.SifraRacuna}}</h5>
+    </div>
+    <div class="d-flex">
+        <h5 class="pe-2">Šifra zaposlenika: </h5><h5 class="px-2 dashedBorder">{{Racun.SifraZaposlenika}}</h5>
+    </div>
+    <div class="d-flex">
+        <h5 class="pe-2">Datum: </h5><h5 class="px-2 dashedBorder">{{Racun.Datum}}</h5>
+    </div>
+
+    <table class="w-100 racunTable">
+        <thead>
+            <tr>
+                <th>Sifra</th>
+                <th class="w-50">Naziv</th>
+                <th>Količina</th>
+                <th>Jedinična cijena</th>
+                <th>Ukupna cijena</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="Stavka in Racun.Stavke">
+                <td>{{Stavka.SifraArtikla}}</td>
+                <td>{{Stavka.Naziv}}</td>
+                <td>{{Stavka.Kolicina}}</td>
+                <td>{{Stavka.JedinicnaCijenaConverted}}</td>
+                <td>{{Stavka.UkupnaCijenaConverted}}</td>    
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="text-end" colspan="5"><br><h5><b>UKUPAN IZNOS </b>
+                    <span ng-if="Racun.SifraValute == $root.User.Valuta" class="text-nowrap">
+                        {{Racun.UkupanIznos}} {{$root.User.Valuta}}
+                    </span>
+                    <span ng-if="Racun.SifraValute != $root.User.Valuta" class="text-nowrap">
+                        {{Racun.UkupanIznosConverted}} {{$root.User.Valuta}}
+                    </span>
+                    <small ng-if="Racun.SifraValute != $root.User.Valuta" class="text-nowrap originalCurrencyLabel">
+                        {{Racun.UkupanIznos}} {{Racun.SifraValute}}
+                    </small>
+                </h5></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <span ng-if="Racun.Storniran == 1" class="storniranRibbonReceipt px-2">STORNIRAN</span>
+</div>

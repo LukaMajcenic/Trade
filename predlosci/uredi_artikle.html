@@ -1,5 +1,7 @@
-<div class="d-flex customFlex">
-	<h4>UREDI ARTIKLE</h4>
+<div class="d-flex p-3 justify-content-center">
+	<button class="customButton" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
+		Filtriranje<i class="fas fa-caret-down"></i>
+	</button>
 </div>
 
 <artikl-filtriranje table-params-parametar="tableParams" 
@@ -12,8 +14,9 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 			<td class="text-center align-middle">
 				<img src="{{Artikl.Slika}}" style="max-width: 60px;">
 			</td>
-			<td title="'Šifra artikla'" sortable="'SifraArtikla'">
-				{{Artikl.SifraArtikla}}
+			<td title="'Šifra'" sortable="'SifraArtikla'" class="text-center">
+				<i class="fas fa-barcode w-100 fs-2"></i>
+				<span>{{Artikl.SifraArtikla}}</span>
 			</td>
 			<td title="'Naziv'" sortable="'Naziv'">
 				{{Artikl.Naziv}}

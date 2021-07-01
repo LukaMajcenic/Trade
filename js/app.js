@@ -1,6 +1,8 @@
 var oModul = angular.module('oModul', ['ngRoute', 'ngTable']);
 
-oModul.run(['$rootScope', '$http', '$location', 'GeneralServices', function ($rootScope, $http, $location) {
+oModul.run(['$rootScope', '$http', '$location', '$interval', 'GeneralServices', function ($rootScope, $http, $location, $interval) {
+
+	$rootScope.HideMenu = false;
 
 	$rootScope.Logout = function()
 	{
@@ -97,6 +99,51 @@ oModul.run(['$rootScope', '$http', '$location', 'GeneralServices', function ($ro
 		}, 2000);
 	}
 
+	function Rnd(min, max)
+	{
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	$rootScope.AnimationVisible = false;
+
+	var tick = function() 
+	{
+		let divId = Rnd(0, 999999);
+		let animationDuration = Rnd(4000, 8000);
+		let divWidth = Rnd(4, 20);
+		$('.mt-n40px').prepend(`<div id="${divId}" class="testDiv" 
+		style="top: ${Rnd(0, 90)}%; transition: ${animationDuration}ms linear; 
+		height: ${Rnd(20, 60)}px; width: ${divWidth}%; opacity:0.${Rnd(30, 50)}"></div>`);
+		setTimeout(function() 
+		{
+			$('#' + divId).css('left', 100 - divWidth + "%");
+
+			setTimeout(function() 
+			{
+				$('#' + divId).detach();
+			}, animationDuration);
+		}, 20);
+	}
+
+	var interval;
+	$rootScope.ChangeAnimation = function(start)
+	{
+		if(start)
+		{
+			$rootScope.AnimationVisible = true;
+			tick();
+			interval = $interval(tick, 500);
+		}
+		else
+		{
+			$('.testDiv').detach();
+			$rootScope.AnimationVisible = false;
+			$interval.cancel(interval);
+		}
+	}
+
+	$rootScope.ChangeAnimation(true);
+
 }]);
 
 oModul.factory('ResponseHandler', function($rootScope, $location)
@@ -132,22 +179,20 @@ oModul.config(function($routeProvider){
 		controller: 'loginKontroler'
 	});
 
+	$routeProvider.when('/registracija', {
+		templateUrl: 'predlosci/registracija.html',
+		controller: 'registracijaKontroler'
+	});
+
+	$routeProvider.when('/print/:sifra_racuna', {
+		templateUrl: 'predlosci/print.html',
+		controller: 'printKontroler'
+	});
+
 	//Pregled svih racuna
 	$routeProvider.when('/pregled_racuna', {
 		templateUrl: 'predlosci/pregled_racuna.html',
-		controller: 'pregledRacunaKontroler',
-		/* resolve: {
-            app: function($q, $rootScope, $location) 
-			{
-                var defer = $q.defer();
-                if ($rootScope.currentUser == undefined) 
-				{
-                    $location.path('/login');
-                };
-                defer.resolve();
-                return defer.promise;
-            }
-		} */
+		controller: 'pregledRacunaKontroler'
 	});
 
 	//Pregled jednog racuna
@@ -209,9 +254,23 @@ oModul.config(function($routeProvider){
 		templateUrl: 'predlosci/uredi_profil.html',
 		controller: 'urediProfilKontroler'
 	});
+
+	//Kategorije
+	$routeProvider.when('/kategorije', {
+		templateUrl: 'predlosci/kategorije.html',
+		controller: 'kategorijeKontroler'
+	});
+
+	//Valute
+	$routeProvider.when('/valute', {
+		templateUrl: 'predlosci/valute.html',
+		controller: 'valuteKontroler'
+	});
 });
 
 oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window, GeneralServices){
+
+	$rootScope.SetBreadcrumb(['Login'], ['']);
 
 	if($rootScope.User != undefined)
 	{
@@ -252,6 +311,54 @@ oModul.controller('loginKontroler', function($rootScope, $scope, $http, $window,
 	}
 });
 
+oModul.controller('registracijaKontroler', function($rootScope, $scope, $http, $window, GeneralServices){
+
+	$rootScope.SetBreadcrumb(['Registracija'], ['']);
+
+	if($rootScope.User != undefined)
+	{
+		$window.location.href = '/KV2/#!/';
+	}
+
+	$scope.NewUser = 
+	{
+		Ime: '',
+		Prezime: '',
+		Email: '',
+		ProfilnaSlika: '',
+		Lozinka: '',
+		LozinkaConfirm: ''
+	}
+
+	$scope.Submit = function()
+	{
+		$scope.NewUser.Errors = GeneralServices.ValidateForm($scope.NewUser, 'registracija');
+		if($scope.NewUser.Errors.length == 0)
+		{
+			$http.post("http://localhost/KV2/Zaposlenici", 
+			{
+				'Ime': $scope.NewUser.Ime,
+				'Prezime': $scope.NewUser.Prezime,
+				'Email': $scope.NewUser.Email,
+				'Lozinka': $scope.NewUser.Lozinka,
+				'ProfilnaSlika': $scope.NewUser.ProfilnaSlika
+			}, $rootScope.ConfigSettings())
+			.then(function()
+			{
+				$window.location.href = '/KV2/#!/login';
+			}, function(response){
+				if(response.status == 409)
+				{
+					$scope.NewUser.Errors.push({'Atribut': response.data, 'Poruka': `Korisnik ${$scope.NewUser.Email} već postoji`})
+				}
+			})
+		}
+
+		console.log($scope.NewUser.Lozinka.length);
+		console.log($scope.NewUser);
+	}
+});
+
 oModul.controller('homeKontroler', function($rootScope, $scope, $http, ResponseHandler){
 
 	$rootScope.SetBreadcrumb([], []);
@@ -263,15 +370,39 @@ oModul.controller('homeKontroler', function($rootScope, $scope, $http, ResponseH
 		}, {});
 	};
 
-	function randomShadeRed()
+	function GetColors(n)
 	{
-		let min = 150;
-		let max = 255;
-		let R = Math.floor(Math.random() * (max - min + 1)) + min;
-		let A =	Math.random() * (0.8 - 0.5) + 0.5;
+		let Colors = {backgroundColors: [], borderColors: []};		
+		for(let i = 0; i < n; i++)
+		{		
+			let randomColor = `hsla(${~~(360 * Math.random())},70%,70%, ALPHA)`;
+			Colors.backgroundColors.push(randomColor.replace("ALPHA", "0.7"));
+			Colors.borderColors.push(randomColor.replace("ALPHA", "0.9"));
+		}
 
-		return 'rgba('+ R +', 0, 0, ' + A +')';
-	} 
+		return Colors;
+	}
+	
+	function GetConfig(type, data, legendShow = false)
+	{
+		return config = 
+		{ 
+			type: type, 
+			data: data, 
+			options: 
+			{
+				plugins:
+				{
+					legend: 
+					{
+						display: legendShow,
+						position: 'bottom'
+					}
+				},
+				cutout: '65%'
+			}
+		};
+	}
 
 	$http.get("http://localhost/KV2/Statistika", $rootScope.ConfigSettings())
 	.then(function(response){
@@ -311,31 +442,51 @@ oModul.controller('homeKontroler', function($rootScope, $scope, $http, ResponseH
 
 				if (Counter == 0) 
 				{
+					let Colors = GetColors(5);
 					const data1 = {
 						labels: ['0-50', '51-100', '101-500', '501-1000', '1000+'],
 						datasets: [{
-						  label: 'My First Dataset',
 						  data: TotalAmountGroups,
-						  backgroundColor: [
-							'rgb(255, 99, 132)',
-							'rgb(75, 192, 192)',
-							'rgb(255, 205, 86)',
-							'rgb(201, 203, 207)'
-						  ]}]
+						  backgroundColor: Colors.backgroundColors,
+						  borderColor: Colors.borderColors,
+						  hoverOffset: 8
+						}]
 					};
 
-					const config1 = {
-						type: 'polarArea',
-						data: data1,
-						options: {}
-					};
-
-					var ctx = $('#Racuni1');
-
-					var myChart = new Chart(ctx, config1);
+					var myChart = new Chart($('#Racuni1'), GetConfig('polarArea', data1, true));
 				}				
 			})
 		})	
+		
+		//#endregion
+
+		//#region Racuni po ukupnom iznosu
+		let data = [0,0];
+		
+		Statistika.Racuni.forEach(function(value)
+		{
+			if(value.SifraZaposlenika == $rootScope.User.SifraZaposlenika)
+			{
+				data[0]++;
+			}
+			else
+			{
+				data[1]++;
+			}			
+		})	
+
+		let Colors5 = GetColors(2);
+		const data5 = {
+			labels: ['Moji računi', 'Ostali računi'],
+			datasets: [{
+				data: data,
+				backgroundColor: Colors5.backgroundColors,
+				borderColor: Colors5.borderColors,
+				hoverOffset: 8
+			}]
+		};
+
+		var myChart = new Chart($('#Racuni5'), GetConfig('doughnut', data5, true));
 		
 		//#endregion
 
@@ -349,42 +500,33 @@ oModul.controller('homeKontroler', function($rootScope, $scope, $http, ResponseH
 			dataset1.push(groupBy(Statistika.Racuni, 'SifraValute')[attr].length);
 		}
 
+		let Colors = GetColors(5);
 		const data2 = {
 			labels: labels1,
 			datasets: [{
 			  label: 'My First Dataset',
 			  data: dataset1,
-			  backgroundColor: [
-				'rgb(255, 99, 132)',
-				'rgb(54, 162, 235)',
-				'rgb(255, 205, 86)'
-			  ],
-			  hoverOffset: 4
+			  backgroundColor: Colors.backgroundColors,
+			  borderColor: Colors.borderColors,
+			  hoverOffset: 8
 			}]
 		};
 
-		const config2 = {
-			type: 'doughnut',
-			data: data2,
-			options: {
-				cutout: '65%'
-			}
-		};
-
-		var ctx2 = $('#Racuni2');
-
-		var myChart2 = new Chart(ctx2, config2);
+		var myChart2 = new Chart($('#Racuni2'), GetConfig('doughnut', data2, true));
 
 		//#endregion
 
-		//#region Racuni po datumima
+		//#region Racuni po zadnjih tjedan dana
 
 		let DaysFrom = [0, 1, 2, 3, 4, 5, 6];
 		let data3 = [0, 0, 0, 0, 0, 0, 0];
+		let data33 = [0, 0, 0, 0, 0, 0, 0];
 		let labels3 = new Array(7); //dani u tjednu
 
-		Statistika.Racuni.map(x => x.Datum).forEach(function(RacunDate)
+		Statistika.Racuni.forEach(function(value)
 		{			
+			RacunDate = value.Datum;
+			RacunStorniran = value.Storniran;
 			DaysFrom.forEach(function(value, index)
 			{
 				let CurrentDate = new Date();
@@ -423,33 +565,178 @@ oModul.controller('homeKontroler', function($rootScope, $scope, $http, ResponseH
 				if(RacunDate == CurrentDate)
 				{
 					data3[index]++;
+
+					if(RacunStorniran == "1")
+					{					
+						data33[index]++;
+					}
 				}
 			})
 		})
 		labels3[0] += " (danas)";
 		labels3[1] += " (jučer)";
 
-		const dataznj = {
+		console.log(data33);
+
+		const dataConfig3 = {
 		labels: labels3.reverse(),
 		datasets: [{
-			label: 'Količina izdanih računa',
 			data: data3.reverse(),
-			fill: false,
-			borderColor: 'rgb(75, 192, 192)',
+			fill: true,
+			borderColor: 'rgb(50, 205, 50)',
+			backgroundColor: 'rgba(50, 205, 50, 0.1)',
 			tension: 0.4
+			},
+			{
+				data: data33.reverse(),
+				fill: true,
+				borderColor: 'rgb(255, 0, 0)',
+				backgroundColor: 'rgba(255, 0, 0, 0.1)',
+				tension: 0.4
 			}]
 		};
 
-		const config3 = { type: 'line', data: dataznj};
+		var myChart3 = new Chart($('#Racuni3'), GetConfig('line', dataConfig3));
 
-		var ctx3 = $('#Racuni3');
+		//#endregion
 
-		var myChart3 = new Chart(ctx3, config3);
+		//#region Racuni po zadnjih pola godine
+
+		let MonthsFrom = [0, 1, 2, 3, 4, 5];
+		let data4 = [0, 0, 0, 0, 0, 0];
+		let data44 = [0, 0, 0, 0, 0, 0];
+		let labels4 = new Array(6); //mjeseci
+
+		Statistika.Racuni.forEach(function(value)
+		{			
+			RacunDate = value.Datum;
+			RacunStorniran = value.Storniran;
+			MonthsFrom.forEach(function(value, index)
+			{
+				let CurrentDate = new Date();
+				RacunDate = new Date(RacunDate);
+
+				CurrentDate.setMonth(CurrentDate.getMonth() - MonthsFrom[index]);
+				switch(CurrentDate.getMonth()+1)
+				{
+					case 1:
+						labels4[index] = "Siječanj " + CurrentDate.getFullYear();
+						break;
+					case 2:
+						labels4[index] = "Veljača " + CurrentDate.getFullYear();
+						break;
+					case 3:
+						labels4[index] = "Ožujak " + CurrentDate.getFullYear();
+						break;
+					case 4:
+						labels4[index] = "Travanj " + CurrentDate.getFullYear();
+						break;
+					case 5:
+						labels4[index] = "Svibanj " + CurrentDate.getFullYear();
+						break;
+					case 6:
+						labels4[index] = "Lipanj " + CurrentDate.getFullYear();
+						break;
+					case 7:
+						labels4[index] = "Srpanj " + CurrentDate.getFullYear();
+						break;
+					case 8:
+						labels4[index] = "Kolovoz " + CurrentDate.getFullYear();
+						break;
+					case 9:
+						labels4[index] = "Rujan " + CurrentDate.getFullYear();
+						break;
+					case 10:
+						labels4[index] = "Listopad " + CurrentDate.getFullYear();
+						break;
+					case 11:
+						labels4[index] = "Studeni " + CurrentDate.getFullYear();
+						break;
+					case 12:
+						labels4[index] = "Prosinac " + CurrentDate.getFullYear();
+						break;
+
+				}
+
+				CurrentDate = CurrentDate.getFullYear() + '-' + (CurrentDate.getMonth()+1);
+				RacunDate = RacunDate.getFullYear() + '-' + (RacunDate.getMonth()+1);
+
+				if(RacunDate == CurrentDate)
+				{
+					data4[index]++;
+
+					if(RacunStorniran == "1")
+					{
+						data44[index]++;
+					}
+				}
+			})
+		})
+
+		const dataConfig4 = {
+		labels: labels4.reverse(),
+		datasets: [{
+			data: data4.reverse(),
+			fill: true,
+			borderColor: 'rgb(50, 205, 50)',
+			backgroundColor: 'rgba(50, 205, 50, 0.1)',
+			tension: 0.4
+			},
+			{
+				data: data44.reverse(),
+				fill: true,
+				borderColor: 'rgb(255, 0, 0)',
+				backgroundColor: 'rgba(255, 0, 0, 0.1)',
+				tension: 0.4
+			}]
+		};
+
+		var myChart3 = new Chart($('#Racuni4'), GetConfig('line', dataConfig4));
 
 		//#endregion
 		
 	}, function(response){
 		ResponseHandler.Handle(response)
+	})
+});
+
+oModul.controller('printKontroler', function($rootScope, $scope, $http, $routeParams, $timeout, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Print'], ['']);
+
+	let SifreRacuna = $routeParams.sifra_racuna.split(',');
+	$rootScope.HideMenu = true;
+	$scope.Racuni = [];
+
+	let Counter = SifreRacuna.length; 
+	SifreRacuna.forEach(function(SifraRacuna)
+	{
+		$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + SifraRacuna, $rootScope.ConfigSettings())
+		.then(function(response) {
+		  let Racun = response.data[0];
+		  $http.get(`https://api.exchangerate.host/convert?from=${Racun.SifraValute}&to=${$rootScope.User.Valuta}`)
+		  .then(function(response){
+				Racun.UkupanIznosConverted = parseFloat((response.data.result * Racun.UkupanIznos).toFixed(2));
+				Racun.Stavke.forEach(function(value){
+					value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
+					value.UkupnaCijenaConverted = parseFloat((response.data.result * value.UkupnaCijena).toFixed(2));
+				})
+				$scope.Racuni.push(Racun);
+				Counter--;
+
+				if(Counter == 0)
+				{
+					$timeout(function() 
+					{
+						window.print();
+						$rootScope.HideMenu = false;
+						window.history.back();
+					})
+				}			
+		  })
+		}, function errorCallback(response) {
+		  ResponseHandler.Handle(response);
+		});
 	})
 });
 
@@ -466,6 +753,7 @@ oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, 
 		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
 		$scope.tableParams.reload();
 		$scope.FilterObject.SifreZaposlenikaUnique = [...new Set($scope.tableParams._settings.dataset.map(x => x.SifraZaposlenika))];
+		$scope.FilterObject.IdOdabranihRacuna = $scope.tableParams._settings.dataset.map(x => x.SifraRacuna).join();
 	}
 
 	GeneralServices.GetExchangeRates().then(function(ExchangeRates){
@@ -501,13 +789,45 @@ oModul.controller('pregledRacunaKontroler', function($rootScope, $scope, $http, 
 			$scope.FilterObject.IznosMinValue = 0;
 			$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
 
-			$scope.FilterObject.StavkeMinValue = 0;
+			$scope.FilterObject.StavkeMinValue = 1;
 			$scope.FilterObject.StavkeMaxValue = $scope.NajveciBrojStavki;
+
+			$( "#slider-range-iznos" ).slider({
+				range: true,
+				min: 0,
+				max: $scope.NajveciUkupanIznos,
+				values: [ 0, $scope.NajveciUkupanIznos ],
+				slide: function( event, ui ) 
+				{
+					$scope.FilterObject.IznosMinValue = ui.values[0];
+					$scope.FilterObject.IznosMaxValue = ui.values[1];
+
+					$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
+					$scope.tableParams.reload();
+					$scope.FilterObject.IdOdabranihRacuna = $scope.tableParams._settings.dataset.map(x => x.SifraRacuna).join();
+				}
+			});
+
+			$( "#slider-range-stavke" ).slider({
+				range: true,
+				min: 1,
+				max: $scope.NajveciBrojStavki,
+				values: [ 1, $scope.NajveciBrojStavki ],
+				slide: function( event, ui ) 
+				{
+					$scope.FilterObject.StavkeMinValue = ui.values[0];
+					$scope.FilterObject.StavkeMaxValue = ui.values[1];
+
+					$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
+					$scope.tableParams.reload();
+					$scope.FilterObject.IdOdabranihRacuna = $scope.tableParams._settings.dataset.map(x => x.SifraRacuna).join();
+				}
+			});
 
 			$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
 			$scope.tableParams.reload();
 			$scope.FilterObject.SifreZaposlenikaUnique = [...new Set($scope.tableParams._settings.dataset.map(x => x.SifraZaposlenika))];
-
+			$scope.FilterObject.IdOdabranihRacuna = $scope.tableParams._settings.dataset.map(x => x.SifraRacuna).join();
 		}, function errorCallback(response) {
 			ResponseHandler.Handle(response);
 		});	
@@ -528,9 +848,7 @@ oModul.controller('pregledJednogRacunaKontroler', function($rootScope, $scope, $
 			$scope.Racun.Stavke.forEach(function(value){
 				value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
 				value.UkupnaCijenaConverted = parseFloat((response.data.result * value.UkupnaCijena).toFixed(2));
-				console.log(value);
 			})
-
 		})
 	  }, function errorCallback(response) {
 		ResponseHandler.Handle(response);
@@ -546,6 +864,8 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 		Stavke: [],
 		SifraValute: localStorage.getItem("Valuta")
 	}
+
+	$scope.Errors = [];
 
 	var tick = function() 
 	{
@@ -573,7 +893,7 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 			$http.get(`https://api.exchangerate.host/convert?from=${value.SifraValute}&to=${$scope.NoviRacun.SifraValute}`)
 			.then(function(response){
 				value.JedinicnaCijenaConverted = parseFloat((response.data.result * value.JedinicnaCijena).toFixed(2));
-				value.UkupnaCijenaConverted = parseFloat((response.data.result * value.UkupnaCijena).toFixed(2));
+				value.UkupnaCijenaConverted = parseFloat(value.JedinicnaCijenaConverted * value.Kolicina).toFixed(2);
 				$scope.PromijeniUkupnuCijenu(value);
 			})
 		})
@@ -610,12 +930,12 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 	{
 		let novaStavka = {
 			Kolicina: 1,
-			UkupnaCijena: Artikl.JedinicnaCijenaConverted,
+			JedinicnaCijena: Artikl.JedinicnaCijena,
+			UkupnaCijena: Artikl.JedinicnaCijena,
 			SifraArtikla: Artikl.SifraArtikla,
 			Naziv: Artikl.Naziv,
 			Opis:  Artikl.Opis,
-			JedinicaMjere: Artikl.JedinicaMjere,
-			JedinicnaCijena: Artikl.JedinicnaCijenaConverted,
+			JedinicaMjere: Artikl.JedinicaMjere,			
 			Slika: Artikl.Slika,
 			Kategorija: Artikl.Kategorija,
 			SifraValute: Artikl.SifraValute,
@@ -635,10 +955,17 @@ oModul.controller('dodajRacunKontroler', function($interval, $rootScope, $scope,
 		}
 
 		$scope.NoviRacun.UkupanIznos = 0.00;
-		$scope.NoviRacun.Stavke.forEach(function(value){
+		$scope.Errors = [];
+		$scope.NoviRacun.Stavke.forEach(function(value)
+		{
+			if(value.Kolicina === undefined || value.Kolicina <= 0)
+			{
+				$scope.Errors.push("Neispravan unos za količinu proizvoda " + value.Naziv);
+			}
 			$scope.NoviRacun.UkupanIznos += value.UkupnaCijenaConverted;
 		})
 		$scope.NoviRacun.UkupanIznos = parseFloat($scope.NoviRacun.UkupanIznos).toFixed(2);
+		console.log($scope.Errors);
 	}
 
 	$scope.ProvjeraArtikla = function(Artikl)
@@ -713,6 +1040,7 @@ oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http
 		$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
 		$scope.tableParams.reload();
 		$scope.FilterObject.SifreZaposlenikaUnique = [...new Set($scope.tableParams._settings.dataset.map(x => x.SifraZaposlenika))];
+		$scope.FilterObject.IdOdabranihRacuna = $scope.tableParams._settings.dataset.map(x => x.SifraRacuna).join();
 	}
 
 	GeneralServices.GetExchangeRates().then(function(ExchangeRates){
@@ -749,12 +1077,43 @@ oModul.controller('stornirajRacuneKontroler', function($rootScope, $scope, $http
 			$scope.FilterObject.IznosMinValue = 0;
 			$scope.FilterObject.IznosMaxValue = $scope.NajveciUkupanIznos;
 
-			$scope.FilterObject.StavkeMinValue = 0;
+			$scope.FilterObject.StavkeMinValue = 1;
 			$scope.FilterObject.StavkeMaxValue = $scope.NajveciBrojStavki;
+
+			$( "#slider-range-iznos" ).slider({
+				range: true,
+				min: 0,
+				max: $scope.NajveciUkupanIznos,
+				values: [ 0, $scope.NajveciUkupanIznos ],
+				slide: function( event, ui ) 
+				{
+					$scope.FilterObject.IznosMinValue = ui.values[0];
+					$scope.FilterObject.IznosMaxValue = ui.values[1];
+
+					$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
+					$scope.tableParams.reload();
+				}
+			});
+
+			$( "#slider-range-stavke" ).slider({
+				range: true,
+				min: 1,
+				max: $scope.NajveciBrojStavki,
+				values: [ 1, $scope.NajveciBrojStavki ],
+				slide: function( event, ui ) 
+				{
+					$scope.FilterObject.StavkeMinValue = ui.values[0];
+					$scope.FilterObject.StavkeMaxValue = ui.values[1];
+
+					$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
+					$scope.tableParams.reload();
+				}
+			});
 
 			$scope.tableParams = RacuniFilterSerivice.SetNgTable($scope);
 			$scope.tableParams.reload();
 			$scope.FilterObject.SifreZaposlenikaUnique = [...new Set($scope.tableParams._settings.dataset.map(x => x.SifraZaposlenika))];
+			$scope.FilterObject.IdOdabranihRacuna = $scope.tableParams._settings.dataset.map(x => x.SifraRacuna).join();
 
 		}, function errorCallback(response) {
 			ResponseHandler.Handle(response);
@@ -786,7 +1145,9 @@ oModul.controller('stornirajJedanRacunKontroler', function($rootScope, $scope, $
 	let SifraRacuna = $routeParams.sifra_racuna;
 	$rootScope.SetBreadcrumb(['Storniraj račune', 'Račun ' + SifraRacuna], ['#!/storniraj_racune', '#!/storniraj_racune/' + SifraRacuna]);
 
-	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + SifraRacuna, $rootScope.ConfigSettings())
+	$http.get("http://localhost/KV2/Racuni?SifraRacuna=" + SifraRacuna, {headers:{
+		'SifraZaposlenika': localStorage.getItem("SifraZaposlenika"),
+		'PageUrl': '/storniraj_racune'}})
 	.then(function(response) {
 	    $scope.Racun = response.data[0];
 
@@ -1113,7 +1474,7 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, G
 		if(Artikl.Errors.length == 0)
 		{		
 			var r = confirm("Jeste li sigurni da želite urediti artikl " + Artikl.Naziv);
-			if (r == true) 
+			if(r) 
 			{	
 				$http.put("http://localhost/KV2/Artikli", {
 					'SifraArtikla' : Artikl.SifraArtikla,
@@ -1148,12 +1509,16 @@ oModul.controller('urediArtikleKontroler', function($rootScope, $scope, $http, G
 
 	$scope.Delete = function(Artikl)
 	{
-		$http.delete("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla, $rootScope.ConfigSettings())
-		.then(function() {
-			$scope.Artikli = $scope.Artikli.filter(x => x.SifraArtikla != Artikl.SifraArtikla);
-			$scope.tableParams._settings.dataset = $scope.tableParams._settings.dataset.filter(x => x.SifraArtikla != Artikl.SifraArtikla);
-			$scope.tableParams.reload();
-		});
+		var r = confirm("Jeste li sigurni da želite obrisati artikl " + Artikl.Naziv);
+		if(r)
+		{	
+			$http.delete("http://localhost/KV2/Artikli?SifraArtikla=" + Artikl.SifraArtikla, $rootScope.ConfigSettings())
+			.then(function() {
+				$scope.Artikli = $scope.Artikli.filter(x => x.SifraArtikla != Artikl.SifraArtikla);
+				$scope.tableParams._settings.dataset = $scope.tableParams._settings.dataset.filter(x => x.SifraArtikla != Artikl.SifraArtikla);
+				$scope.tableParams.reload();
+			});
+		}
 	}
 });
 
@@ -1281,7 +1646,8 @@ oModul.controller('urediZaposlenikeKontroler', function($rootScope, $scope, $htt
 				'Tema': Zaposlenik.Tema,
 				'Admin': Zaposlenik.Admin,
 				'Deaktiviran': Zaposlenik.Deaktiviran,
-				'Valuta': $rootScope.User.Valuta},
+				'Valuta': $rootScope.User.Valuta,
+				'ProfilnaSlika': Zaposlenik.ProfilnaSlika},
 				$rootScope.ConfigSettings())
 			.then(function(){
 				$rootScope.ShowAlert(`Zaposlenik ${Zaposlenik.Ime} ${Zaposlenik.Prezime} ažuriran`);			
@@ -1318,7 +1684,8 @@ oModul.controller('urediProfilKontroler', function($rootScope, $scope, $http, Ge
 					'Tema': $rootScope.User.Tema,
 					'Admin': $rootScope.User.Admin,
 					'Deaktiviran': $rootScope.User.Deaktiviran, 
-					'Valuta': $rootScope.User.Valuta},
+					'Valuta': $rootScope.User.Valuta,
+					'ProfilnaSlika': $rootScope.User.ProfilnaSlika},
 					$rootScope.ConfigSettings())
 				.then(function(){
 					localStorage.setItem('Valuta', $rootScope.User.Valuta);
@@ -1327,6 +1694,32 @@ oModul.controller('urediProfilKontroler', function($rootScope, $scope, $http, Ge
 			}
 		}
 	}
+});
+
+oModul.controller('kategorijeKontroler', function($rootScope, $scope, $http, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Kategorije'], ['#!/kategorije']);
+
+	$http.get("http://localhost/KV2/Sifrarnik", $rootScope.ConfigSettings())
+	.then(function(response) {
+		$scope.Kategorije = response.data.Kategorije;
+
+	}, function errorCallback(response) {
+		ResponseHandler.Handle(response);
+	});	
+});
+
+oModul.controller('valuteKontroler', function($rootScope, $scope, $http, ResponseHandler){
+
+	$rootScope.SetBreadcrumb(['Valute'], ['#!/valute']);
+
+	$http.get("http://localhost/KV2/Sifrarnik", $rootScope.ConfigSettings())
+	.then(function(response) {
+		$scope.Valute = response.data.Valute;
+
+	}, function errorCallback(response) {
+		ResponseHandler.Handle(response);
+	});	
 });
 
 oModul.directive('artiklForma', function(){
@@ -1400,7 +1793,8 @@ oModul.directive('logo', function(){
 	   restrict:'E',
 	   templateUrl:'direktive/logo',
 	   scope: {
-		   forNavMenu: '='
+		   forNavMenu: '=',
+		   showAnimation: '='
 	   }
 	};
 });
@@ -1409,26 +1803,31 @@ oModul.factory('GeneralServices', function($rootScope, $http)
 {
 	var factory = {};
 
-	factory.ValidateForm = function(Object)
+	factory.ValidateForm = function(Object, Page = null)
 	{
 		let Errors = [];
 
 		for (prop in Object) 
 		{
-			if(Object[prop] == '' || Object[prop] === null)
+			if(prop != 'Slika' && prop != 'Errors' && prop != 'ProfilnaSlika')
 			{
-				if(prop != 'Slika' && prop != 'Errors')
+				if(Object[prop] == '' || Object[prop] === null)
 				{
-					Errors.push({'Atribut': prop, 'Poruka': 'Polje ne može biti prazno!'})
+						Errors.push({'Atribut': prop, 'Poruka': 'Polje ne može biti prazno!'})
+				}
+				
+				if(Object[prop] === undefined)
+				{
+						Errors.push({'Atribut': prop, 'Poruka': 'Neispravan unos!'})
 				}
 			}
-			
-			if(Object[prop] === undefined)
+		}
+
+		if(Errors.length == 0 && Page == 'registracija')
+		{
+			if(Object.Lozinka != Object.LozinkaConfirm)
 			{
-				if(prop != 'Slika' && prop != 'Errors')
-				{
-					Errors.push({'Atribut': prop, 'Poruka': 'Neispravan unos!'})
-				}
+				Errors.push({'Atribut': 'LozinkaConfirm', 'Poruka': 'Potvrda lozinke nije ista kao i lozinka!'})
 			}
 		}
 
@@ -1465,41 +1864,8 @@ oModul.factory('RacuniFilterSerivice', function()
 
 	factory.SetNgTable = function(scope)
 	{
-		$( "#slider-range-iznos" ).slider({
-			range: true,
-			min: 0.00,
-			max: scope.NajveciUkupanIznos,
-			values: [ 0, scope.NajveciUkupanIznos ],
-			slide: function( event, ui ) 
-			{
-				scope.FilterObject.IznosMinValue = ui.values[0];
-				scope.FilterObject.IznosMaxValue = ui.values[1];
-
-				$('#IznosMinValue').text(ui.values[0]);
-				$('#IznosMaxValue').text(ui.values[1]);
-
-			    factory.SetNgTable(scope);
-			}
-		});
-
-		$( "#slider-range-stavke" ).slider({
-			range: true,
-			min: 0,
-			max: scope.NajveciBrojStavki,
-			values: [ 0, scope.NajveciBrojStavki ],
-			slide: function( event, ui ) 
-			{
-				scope.FilterObject.StavkeMinValue = ui.values[0];
-				scope.FilterObject.StavkeMaxValue = ui.values[1];
-
-				$('#StavkeMinValue').text(ui.values[0]);
-				$('#StavkeMaxValue').text(ui.values[1]);
-
-			  	factory.SetNgTable(scope);
-			}
-		});
-
  		let SortiraniRacuni = scope.Racuni;
+		 console.log(SortiraniRacuni)
  		if(!scope.FilterObject.PrikaziStornirane)
 		{
 			SortiraniRacuni = SortiraniRacuni.filter(x =>

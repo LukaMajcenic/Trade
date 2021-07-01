@@ -3,8 +3,8 @@
 {
     flex: 1;
     margin-bottom: 10px;
-    background-color: var(--backgroundDarker2);
-    border: none;
+    background-color: transparent;
+    border: 2px solid var(--customRed);
     color: var(--foreground);
     padding: 3px;
 }

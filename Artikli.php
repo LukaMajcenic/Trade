@@ -3,29 +3,54 @@
 include 'classes.php';
 include 'connection.php';
 
+function IsDuplicate($oConnection, $NazivArtikla, $SifraArtikla)
+{
+	$sQuery = "SELECT SifraArtikla, Naziv FROM artikli WHERE Obrisan = '0' AND Naziv = '". $NazivArtikla ."'";
+
+	$oRecord = $oConnection->query($sQuery);
+	while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+	{
+		if($oRow['SifraArtikla'] != $SifraArtikla)
+		{
+			return true;
+		}		
+	}
+
+	return false;
+}
+
 switch ($_SERVER['REQUEST_METHOD']) 
 {
 	case 'GET':
 
 		$sQuery = "SELECT * FROM artikli INNER JOIN kategorije ON artikli.SifraKategorije = kategorije.SifraKategorije WHERE Obrisan = '0'";
+		$oData = array();
 		if(isset($_GET['SifraArtikla']))
 		{
-			$sQuery .= " AND SifraArtikla = '". $_GET['SifraArtikla'] ."'";
+			$sQuery .= " AND SifraArtikla = :SifraArtikla";
+			$oData = array(
+				'SifraArtikla' => $_GET['SifraArtikla']
+			);
 		}
+		$oStatement = $oConnection->prepare($sQuery);
+		$oStatement->execute($oData);
 
-		$oRecord = $oConnection->query($sQuery);
+		$Rows = $oStatement->fetchAll(\PDO::FETCH_ASSOC);
+		$Counter = 0;
 		$Artikli = Array();
-		while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+		while($Counter < count($Rows))
 		{
+			$oRow = $Rows[$Counter];
 			$oKategorija = new Kategorija($oRow['SifraKategorije'], $oRow['NazivKategorije']);
 
 			$oArtikl = new Artikl((int)$oRow['SifraArtikla'], $oRow['Naziv'], $oRow['Opis'], $oRow['JedinicaMjere'], 
 			(float)$oRow['JedinicnaCijena'], $oRow['Slika'], $oKategorija, $oRow['SifraValute']);
 
 			array_push($Artikli, $oArtikl);
+			$Counter++;
 		}
-		header('Content-Type: application/json');
-		echo json_encode($Artikli);
+		
+		echo json_encode($Artikli); 
 		break;
 
 	case 'POST':
@@ -48,24 +73,16 @@ switch ($_SERVER['REQUEST_METHOD'])
 			);
 
 
-			if($oStatement->execute($oData))
+			if(IsDuplicate($oConnection, $_POST['Naziv'], null))
 			{
-				echo "Artikl '" . $_POST['Naziv'] . "' dodan";
+				http_response_code(409);
+				echo "Naziv";
 			}
 			else
 			{
-				switch($oStatement->errorCode())
-				{
-					case '23000':
-						http_response_code(409);
-						echo "Naziv";
-						break;
-					default:
-						http_response_code(400);
-						break;
-				}
+				$oStatement->execute($oData);
+				echo "Artikl '" . $_POST['Naziv'] . "' dodan";
 			}
-			
 		}
 		else
 		{
@@ -101,22 +118,15 @@ switch ($_SERVER['REQUEST_METHOD'])
 				'Slika' => $_PUT['Slika']
 			);
 
-			if($oStatement->execute($oData))
+			if(IsDuplicate($oConnection, $_PUT['Naziv'], $_PUT['SifraArtikla']))
 			{
-				echo "Artikl '" . $_PUT['SifraArtikla'] . "' ažuriran";
+				http_response_code(409);
+				echo "Naziv";
 			}
 			else
 			{
-				switch($oStatement->errorCode())
-				{
-					case '23000':
-						http_response_code(409);
-						echo "Naziv";
-						break;
-					default:
-						http_response_code(400);
-						break;
-				}
+				$oStatement->execute($oData);
+				echo "Artikl '" . $_PUT['SifraArtikla'] . "' ažuriran";
 			}
 		}
 		else

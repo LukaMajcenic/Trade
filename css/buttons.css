@@ -131,3 +131,18 @@
     background-color: rgba(50, 305, 50, 0.1);
     color: limegreen;
 }
+
+button[data-bs-target="#collapseFiltriranje"]
+{
+	margin-right: 5px;
+}
+
+.h-32px
+{
+	height: 32px;
+}
+
+.pt-1-5px
+{
+	padding-top: 1.5px;
+}

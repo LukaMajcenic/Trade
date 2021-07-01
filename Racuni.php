@@ -35,37 +35,56 @@ switch ($_SERVER['REQUEST_METHOD'])
 
 		if(!isset($_GET['SifraZaposlenika']))
 		{
-			$sQuery = "SELECT * FROM racuni";
+			$sQuery = "SELECT * FROM racuni INNER JOIN zaposlenici ON racuni.SifraZaposlenika = zaposlenici.SifraZaposlenika ";
+			$oData = array();
 			if(isset($_GET['SifraRacuna']))
 			{
-				$sQuery .= " WHERE SifraRacuna = '". $_GET['SifraRacuna'] ."'";
+				$sQuery .= " WHERE SifraRacuna = :SifraRacuna";
+				$oData = array(
+					'SifraRacuna' => $_GET['SifraRacuna']
+				);
 			}
-
-			$oRecord = $oConnection->query($sQuery);
+			$oStatement = $oConnection->prepare($sQuery);
+			$oStatement->execute($oData);
+	
+			$Rows = $oStatement->fetchAll(\PDO::FETCH_ASSOC);
+			$Counter = 0;
 			$Racuni = Array();
-			while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+			while($Counter < count($Rows))
 			{
+				$oRow = $Rows[$Counter];
+
+				$oZaposlenik = new Zaposlenik($oRow['SifraZaposlenika'], $oRow['Ime'], $oRow['Prezime'], $oRow['Email'], 
+				$oRow['AdminX'], $oRow['Deaktiviran'], $oRow['Tema'], $oRow['Valuta'], $oRow['ProfilnaSlika']);
 				$Stavke = DohvatiStavke($oConnection, $oRow['SifraRacuna']);
 				$oRacun = new Racun((int)$oRow['SifraRacuna'], (int)$oRow['SifraZaposlenika'], (float)$oRow['UkupanIznos'], 
-				$oRow['Datum'], $oRow['Storniran'], $oRow['SifraValute'], $Stavke);
+				$oRow['Datum'], $oRow['Storniran'], $oRow['SifraValute'], $Stavke, $oZaposlenik);
 
 				array_push($Racuni, $oRacun);
+				$Counter++;
 			}
-			header('Content-Type: application/json');
-			echo json_encode($Racuni);
+			
+			echo json_encode($Racuni); 
 			break;
 		}
 		else
 		{
-			$sQuery = "SELECT SifraRacuna FROM racuni";
-			$sQuery .= " WHERE SifraZaposlenika = '". $_GET['SifraZaposlenika'] ."' ORDER BY SifraRacuna DESC LIMIT 1";
+			$sQuery = "SELECT SifraRacuna FROM racuni WHERE SifraZaposlenika = :SifraZaposlenika ORDER BY SifraRacuna DESC LIMIT 1";
+			$oData = array(
+				'SifraZaposlenika' => $_GET['SifraZaposlenika']
+			);
 
-			$oRecord = $oConnection->query($sQuery);
-			while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+			$oStatement = $oConnection->prepare($sQuery);
+			$oStatement->execute($oData);
+	
+			$Rows = $oStatement->fetchAll(\PDO::FETCH_ASSOC);
+			$Counter = 0;
+			while($Counter < count($Rows))
 			{
+				$oRow= $Rows[$Counter];
 				echo $oRow['SifraRacuna'];
+				$Counter++;
 			}
-			header('Content-Type: application/json');
 			break;
 		}
 

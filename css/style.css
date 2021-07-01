@@ -44,14 +44,6 @@ body
 	max-height: 50px;
 }
 
-h4
-{
-    border-bottom: 5px solid var(--customRed);
-    color: var(--foreground);
-    font-weight: bold;
-    font-size: xx-large;
-}
-
 .customFlex
 {
 	justify-content: center;
@@ -67,7 +59,7 @@ h4
 .customForm input, .customForm select, .customForm textarea
 {
 	background-color: var(--backgroundDarker1) !important;
-	border: none !important;
+	border: 1px solid var(--backgroundDarker2);
 	color: var(--foreground) !important;
 	height: calc(3.5rem + 2px);
     padding: 1rem .75rem;
@@ -80,6 +72,7 @@ h4
 
 .customForm input:focus, .customForm select:focus, .customForm textarea:focus
 {
+	border: none;
 	border-bottom: 3px solid var(--customRed) !important;
 	box-shadow: none !important;
 }
@@ -149,9 +142,9 @@ input:-webkit-autofill
 .validationLabel
 {
 	color: red !important;
-    font-size: 1rem;
-    background-color: rgba(255,0,0,0.1);
-    padding: 3px;
+	font-size: unset;
+	background-color: rgba(255,0,0,0.1);
+    padding: 1px;
 	margin-bottom: 0px;
 }
 
@@ -482,4 +475,121 @@ img
     overflow: hidden;
     white-space: nowrap; 
 	margin-left: 5px;
+}
+
+.urediProfilnaSlika
+{
+	height: 58px;
+	width: 58px;
+	border: none;
+	background-color: var(--backgroundDarker1);
+}
+
+.homeDiv
+{
+	color: var(--foreground);
+	margin-bottom: 50px;
+}
+
+.loginForm
+{
+	width: 400px;
+	background-color: var(--background);
+	padding: 15px;
+	background: linear-gradient(59deg, var(--backgroundDarker1) 0%, rgba(0,0,0,0) 50%, var(--backgroundDarker1) 100%);
+}
+
+@media print 
+{	  
+	.printDiv { page-break-after: always; }
+}
+
+.printDiv .storniranRibbonReceipt
+{
+	top: 40px;
+}
+
+.mt-n40px
+{
+	margin-top: -40px;
+}
+
+.testDiv
+{
+	z-index: -1;
+    background-color: var(--backgroundDarker1);
+    position: absolute;
+	left: 0%;
+}
+
+.employeeCard
+{
+	height: 260px;
+    width: 200px;
+    background-color: floralwhite;
+    position: absolute;
+    z-index: 1;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+	padding-bottom: 3px;
+    border-radius: 3px;
+    border: 1px solid papayawhip;
+	color: rgb(0 0 0 / 80%);
+	-webkit-box-shadow: 0px 3px 5px 0px rgba(0,0,0,0.1); 
+	box-shadow: 0px 3px 5px 0px rgba(0,0,0,0.1);
+}
+
+.employeeCard .logoDiv
+{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background-color: papayawhip;
+    border-radius: 2px;
+    padding-bottom: 25px;
+    padding-top: 5px;
+}
+
+.employeeCard img
+{
+	max-height: 100px;
+	max-width: 150px;
+	opacity: 0.9;
+	border: 3px solid floralwhite;
+	border-radius: 2px;
+	margin-top: -20px;
+	-webkit-box-shadow: inset 0px 0px 20px 11px rgba(0,0,0,0.1); 
+	box-shadow: inset 0px 0px 20px 11px rgba(0,0,0,0.1);
+}
+
+.employeeCard .infoDiv
+{
+	opacity: 0.3;
+    height: 100%;
+    width: 100%;
+    font-size: medium;
+}
+
+.employeeCard .barcodeDiv
+{
+	display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.barcodeDiv .fa-barcode
+{
+	font-size: x-large;
+}
+
+.infoDiv, .barcodeDiv
+{
+	padding-left: 7px;
+	padding-right: 7px;
+}
+
+.question:hover + .employeeCard
+{
+	display: flex;
 }

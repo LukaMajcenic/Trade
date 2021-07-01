@@ -10,8 +10,9 @@ abstract class Osoba
 	public $Deaktiviran;
 	public $Tema;
 	public $Valuta;
+	public $ProfilnaSlika;
 
-	function __construct($SifraZaposlenika, $Ime, $Prezime, $Email, $Admin, $Deaktiviran, $Tema, $Valuta)
+	function __construct($SifraZaposlenika, $Ime, $Prezime, $Email, $Admin, $Deaktiviran, $Tema, $Valuta, $ProfilnaSlika)
 	{
 		$this->SifraZaposlenika = $SifraZaposlenika;
 		$this->Ime = $Ime;
@@ -21,6 +22,7 @@ abstract class Osoba
 		$this->Deaktiviran = $Deaktiviran;
 		$this->Tema = $Tema;
 		$this->Valuta = $Valuta;
+		$this->ProfilnaSlika = $ProfilnaSlika;
 	}
 }
 
@@ -94,8 +96,9 @@ class Racun
 	public $Storniran;
 	public $SifraValute;
 	public $Stavke;
+	public $Zaposlenik;
 
-	function __construct($SifraRacuna, $SifraZaposlenika, $UkupanIznos, $Datum, $Storniran, $SifraValute, $Stavke)
+	function __construct($SifraRacuna, $SifraZaposlenika, $UkupanIznos, $Datum, $Storniran, $SifraValute, $Stavke, $Zaposlenik)
 	{
 		$this->SifraRacuna = $SifraRacuna;
 		$this->SifraZaposlenika = $SifraZaposlenika;
@@ -104,6 +107,19 @@ class Racun
 		$this->Storniran = $Storniran;
 		$this->SifraValute = $SifraValute;
 		$this->Stavke = $Stavke;
+		$this->Zaposlenik = $Zaposlenik;
+	}
+}
+
+class Sifrarnik
+{
+	public $Kategorije;
+	public $Valute;
+
+	function __construct($Kategorije, $Valute)
+	{
+		$this->Kategorije = $Kategorije;
+		$this->Valute = $Valute;
 	}
 }
 
@@ -120,7 +136,6 @@ class Valuta
 		$this->SimbolValute = $SimbolValute;
 	}
 }
-
 
 class Statistika
 {

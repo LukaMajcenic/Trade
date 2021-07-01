@@ -3,30 +3,55 @@
 include 'classes.php';
 include 'connection.php';
 
+function IsDuplicate($oConnection, $Email)
+{
+	$sQuery = "SELECT Email FROM zaposlenici WHERE Deaktiviran = '0' AND Email = '". $Email ."'";
+
+	$oRecord = $oConnection->query($sQuery);
+	while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+	{
+		return true;
+	}
+
+	return false;
+}
+
 switch ($_SERVER['REQUEST_METHOD']) 
 {
 	case 'GET':
 
 		$sQuery = "SELECT * FROM zaposlenici";
+		$oData = array();
 		if(isset($_GET['SifraZaposlenika']))
 		{
-			$sQuery .= " WHERE SifraZaposlenika = '". $_GET['SifraZaposlenika'] ."'";
+			$sQuery .= " WHERE SifraZaposlenika = :SifraZaposlenika";
+			$oData = array(
+				'SifraZaposlenika' => $_GET['SifraZaposlenika']
+			);
 		}
+		$oStatement = $oConnection->prepare($sQuery);
+		$oStatement->execute($oData);
 
-		$oRecord = $oConnection->query($sQuery);
+		$Rows = $oStatement->fetchAll(\PDO::FETCH_ASSOC);
+		$Counter = 0;
 		$Zaposlenici = Array();
-		while($oRow = $oRecord->fetch(PDO::FETCH_BOTH))
+		while($Counter < count($Rows))
 		{
+			$oRow = $Rows[$Counter];
+
 			$oZaposlenik = new Zaposlenik($oRow['SifraZaposlenika'], $oRow['Ime'], $oRow['Prezime'], $oRow['Email'], 
-			$oRow['AdminX'], $oRow['Deaktiviran'], $oRow['Tema'], $oRow['Valuta']);
+			$oRow['AdminX'], $oRow['Deaktiviran'], $oRow['Tema'], $oRow['Valuta'], $oRow['ProfilnaSlika']);
 
 			array_push($Zaposlenici, $oZaposlenik);
+			$Counter++;
 		}
-		header('Content-Type: application/json');
+		
 		echo json_encode($Zaposlenici);
 		break;
 
 	case 'POST':
+
+		$_POST = json_decode(file_get_contents('php://input'), true);
 
 		if(isset($_POST['Ime']) && isset($_POST['Prezime']) && isset($_POST['Email']) && isset($_POST['Lozinka']))
 		{
@@ -39,14 +64,22 @@ switch ($_SERVER['REQUEST_METHOD'])
 				'Lozinka' => $_POST['Lozinka']
 			);
 
-			if($oStatement->execute($oData))
+			if(IsDuplicate($oConnection, $_POST['Email']))
 			{
-				echo "Zaposlenik '" . $_POST['Ime'] . " " . $_POST['Prezime'] . "' dodan";
+				http_response_code(409);
+				echo "Email";
 			}
 			else
 			{
-				http_response_code(400);
-				echo "Upit nije izvršen!";
+				if($oStatement->execute($oData))
+				{
+
+				}
+				else
+				{
+					var_dump($oStatement->errorInfo());
+					echo "Zaposlenik '" . $_POST['Ime'] . " " . $_POST['Prezime'] . "' dodan";
+				}
 			}
 		}
 		else
@@ -61,7 +94,7 @@ switch ($_SERVER['REQUEST_METHOD'])
 		$_PUT = json_decode(file_get_contents('php://input'), true);
 		
 		if(isset($_PUT['SifraZaposlenika']) && isset($_PUT['Ime']) && isset($_PUT['Prezime']) && isset($_PUT['Tema'])
-		&& isset($_PUT['Admin']) && isset($_PUT['Deaktiviran']) && isset($_PUT['Valuta']))
+		&& isset($_PUT['Admin']) && isset($_PUT['Deaktiviran']) && isset($_PUT['Valuta']) && isset($_PUT['ProfilnaSlika']))
 		{
 			$sQuery = "UPDATE zaposlenici SET 
 				Ime = :Ime, 
@@ -69,7 +102,8 @@ switch ($_SERVER['REQUEST_METHOD'])
 				Tema = :Tema,
 				AdminX = :AdminX,
 				Deaktiviran = :Deaktiviran,
-				Valuta = :Valuta
+				Valuta = :Valuta,
+				ProfilnaSlika = :ProfilnaSlika
 				WHERE SifraZaposlenika = :SifraZaposlenika";
 			$oStatement = $oConnection->prepare($sQuery);
 			$oData = array(
@@ -79,17 +113,19 @@ switch ($_SERVER['REQUEST_METHOD'])
 				'Tema' => $_PUT['Tema'],
 				'AdminX' => $_PUT['Admin'],
 				'Deaktiviran' => $_PUT['Deaktiviran'],
-				'Valuta' => $_PUT['Valuta']
+				'Valuta' => $_PUT['Valuta'],
+				'ProfilnaSlika' => $_PUT['ProfilnaSlika']
 			);
-
-			if($oStatement->execute($oData))
+			
+			if(IsDuplicate($oConnection, $_PUT['Email']))
 			{
-				echo "Zaposlenik '" . $_PUT['SifraZaposlenika'] . "' ažuriran";
+				http_response_code(409);
+				echo "Email";
 			}
 			else
 			{
-				http_response_code(400);
-				echo "Upit nije izvršen!";
+				$oStatement->execute($oData);
+				echo "Zaposlenik '" . $_PUT['SifraZaposlenika'] . "' ažuriran";
 			}
 		}
 		else

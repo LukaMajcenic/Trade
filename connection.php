@@ -17,7 +17,7 @@ try
 	$oConnection = new PDO("mysql:host=$configuration->host; dbname=$configuration->dbName; charset=utf8", $configuration->username, $configuration->password);
 	$AdminOnlyPages = array("/storniraj_racune", "/dodaj_artikl", "/uredi_artikle", '/pregled_zaposlenika', '/uredi_zaposlenike');
 
-    if($_SERVER['REQUEST_URI'] != '/KV2/Login')
+    if($_SERVER['REQUEST_URI'] != '/KV2/Login' && $_SERVER['HTTP_PAGEURL'] != '/registracija')
     {
         if(!isset($_SERVER['HTTP_SIFRAZAPOSLENIKA'])
         || !isset($_SESSION['SifraZaposlenika'])

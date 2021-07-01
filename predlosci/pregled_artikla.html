@@ -1,14 +1,14 @@
-<div class="d-flex customFlex">
-	<h4>PREGLEDAJ ARTIKLE</h4>
-</div>
+<div class="d-flex p-3">
+	<button class="customButton h-32px py-1" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
+		Filtriranje<i class="fas fa-caret-down"></i>
+	</button>
 
-<div class="d-flex p-3 justify-content-center">
-	<div class="btn-group btn-group-custom" role="group" aria-label="Basic radio toggle button group">
+	<div class="btn-group btn-group-custom h-32px" role="group" aria-label="Basic radio toggle button group">
 		<input ng-click="ShowCards()" type="radio" class="btn-check" name="btnradio" id="btnradioCards" autocomplete="off" checked>
-		<label class="btn btn-outline-primary radiusNone" for="btnradioCards"><i class="fas fa-th"></i></label>
+		<label class="btn btn-outline-primary radiusNone pt-1-5px" for="btnradioCards"><i class="fas fa-th align-middle"></i></label>
 
 		<input ng-click="ShowTable()" type="radio" class="btn-check" name="btnradio" id="btnradioTable" autocomplete="off">
-		<label class="btn btn-outline-primary radiusNone" for="btnradioTable"><i class="fas fa-th-list"></i></label>
+		<label class="btn btn-outline-primary radiusNone pt-1-5px" for="btnradioTable"><i class="fas fa-th-list align-middle"></i></label>
 	</div>
 </div>
 
@@ -17,9 +17,15 @@ filter-object-parametar="FilterObject"
 filter-change-parametar="FilterChange()"></artikl-filtriranje>
 
 <div class="row row-cols-1 row-cols-md-3 justify-content-center" id="pregledArtiklaCards">
-	<div ng-repeat="Artikl in tableParams._settings.dataset" class="card m-3">
-		<div class="card-header">
-			{{Artikl.Kategorija.Naziv}}
+	<div ng-repeat="Artikl in tableParams._settings.dataset" class="card m-3 shadow-sm">
+		<div class="card-header d-flex justify-content-between">
+			<div class="d-flex align-items-center">
+				{{Artikl.Kategorija.Naziv}}
+			</div>
+			<div class="d-flex align-items-center">
+				<span>{{Artikl.SifraArtikla}}</span>
+				<i class="fas fa-barcode fs-2 ms-1"></i>				
+			</div>
 		</div>
 		<img src="{{Artikl.Slika}}" class="card-img-top" alt="..." ng-if="Artikl.Slika">
 		<div class="card-body">
@@ -47,8 +53,9 @@ filter-change-parametar="FilterChange()"></artikl-filtriranje>
 			<td class="text-center align-middle">
 				<img src="{{Artikl.Slika}}" style="max-width: 60px;">
 			</td>
-			<td title="'Šifra artikla'" sortable="'SifraArtikla'">
-				{{Artikl.SifraArtikla}}
+			<td title="'Šifra'" sortable="'SifraArtikla'" class="text-center">
+				<i class="fas fa-barcode w-100 fs-2"></i>
+				<span>{{Artikl.SifraArtikla}}</span>
 			</td>
 			<td title="'Naziv'" sortable="'Naziv'">
 				{{Artikl.Naziv}}

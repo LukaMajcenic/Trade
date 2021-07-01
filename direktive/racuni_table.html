@@ -1,6 +1,10 @@
-<button class="customButton" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
+<button class="customButton py-1" data-bs-toggle="collapse" data-bs-target="#collapseFiltriranje" aria-expanded="false" aria-controls="collapseFiltriranje">
     Filtriranje<i class="fas fa-caret-down rotate"></i>
 </button>
+
+<a href="#!/print/{{filterObjectParameter.IdOdabranihRacuna}}"><button class="customButton py-1">
+	Ispiši sve ({{ngTableParamsParameter._settings.dataset.length}})<i class="fas fa-print"></i>
+</button></a>
 
 <div class="collapse" id="collapseFiltriranje">
 	<div class="d-flex justify-content-evenly align-items-center selectDiv mt-3">
